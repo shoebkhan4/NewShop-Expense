@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Track construction expenses for your new shop">
+  <title>Shop Khata - Expense Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash" class="splash">
+    <div class="splash-content">
+      <div class="splash-icon">🏗️</div>
+      <h1>Shop Khata</h1>
+      <p>Loading your expenses...</p>
+      <div class="splash-loader"></div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="dashboard">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-tab="add">
+        <div class="nav-add-btn">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <span>Add</span>
+      </button>
+      <button class="nav-item" data-tab="history">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>History</span>
+      </button>
+    </nav>
+
+    <!-- ===== DASHBOARD TAB ===== -->
+    <section id="tab-dashboard" class="tab-content active">
+      <header class="app-header">
+        <div class="header-top">
+          <div>
+            <p class="greeting" id="greeting">Good Morning</p>
+            <h1 class="app-title">Shop Khata</h1>
+          </div>
+          <div class="header-actions">
+            <button class="sync-indicator" id="sync-btn" title="Sync now">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+            <button class="sync-indicator" id="settings-btn" title="Settings">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-card-bg"></div>
+        <p class="balance-label">Total Spent</p>
+        <h2 class="balance-amount" id="total-amount">₹0</h2>
+        <div class="balance-meta">
+          <div class="meta-item">
+            <span class="meta-label">This Month</span>
+            <span class="meta-value" id="monthly-amount">₹0</span>
+          </div>
+          <div class="meta-divider"></div>
+          <div class="meta-item">
+            <span class="meta-label">Entries</span>
+            <span class="meta-value" id="total-entries">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div class="section-header">
+        <h3>Spending by Category</h3>
+      </div>
+      <div class="category-breakdown" id="category-breakdown"></div>
+
+      <!-- Recent Transactions -->
+      <div class="section-header">
+        <h3>Recent Expenses</h3>
+        <button class="see-all-btn" onclick="switchTab('history')">See All</button>
+      </div>
+      <div class="recent-list" id="recent-list"></div>
+
+      <!-- Quick Stats -->
+      <div class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-icon today-icon">📅</div>
+          <div class="stat-info">
+            <span class="stat-label">Today</span>
+            <span class="stat-value" id="today-amount">₹0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon week-icon">📊</div>
+          <div class="stat-info">
+            <span class="stat-label">This Week</span>
+            <span class="stat-value" id="week-amount">₹0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ADD EXPENSE TAB ===== -->
+    <section id="tab-add" class="tab-content">
+      <header class="app-header">
+        <h1 class="page-title">New Expense</h1>
+      </header>
+
+      <form id="expense-form" class="expense-form">
+        <div class="amount-input-section">
+          <span class="currency-symbol">₹</span>
+          <input type="number" id="amount" step="1" min="0" required placeholder="0" class="amount-input" inputmode="numeric">
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Category</label>
+          <div class="category-chips" id="category-chips">
+            <button type="button" class="chip" data-value="Materials">🧱 Materials</button>
+            <button type="button" class="chip" data-value="Equipment">🔧 Equipment</button>
+            <button type="button" class="chip" data-value="Machines">⚙️ Machines</button>
+            <button type="button" class="chip" data-value="Utility">💡 Utility</button>
+            <button type="button" class="chip" data-value="Labor">👷 Labor</button>
+            <button type="button" class="chip" data-value="Bills">📄 Bills</button>
+            <button type="button" class="chip" data-value="Franchise Fee">🏪 Franchise Fee</button>
+            <button type="button" class="chip" data-value="Permits">📋 Permits</button>
+            <button type="button" class="chip" data-value="Transport">🚛 Transport</button>
+            <button type="button" class="chip" data-value="Food">🍕 Food</button>
+            <button type="button" class="chip" data-value="Other">📦 Other</button>
+          </div>
+          <input type="hidden" id="selected-category" required>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Description</label>
+          <input type="text" id="description" required placeholder="What was this expense for?" class="text-input" autocomplete="off">
+        </div>
+
+        <div class="form-row">
+          <div class="form-section flex-1">
+            <label class="form-label">Date</label>
+            <input type="date" id="date" required class="text-input">
+          </div>
+          <div class="form-section flex-1">
+            <label class="form-label">Paid By</label>
+            <input type="text" id="paid-by" placeholder="Name" class="text-input" autocomplete="off">
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          <span class="btn-text">Add Expense</span>
+          <span class="btn-loading hidden">
+            <span class="btn-spinner"></span>
+            Saving...
+          </span>
+        </button>
+      </form>
+
+      <div id="success-toast" class="toast success-toast hidden">
+        <span class="toast-icon">✓</span>
+        <span class="toast-text">Expense added successfully!</span>
+      </div>
+    </section>
+
+    <!-- ===== HISTORY TAB ===== -->
+    <section id="tab-history" class="tab-content">
+      <header class="app-header">
+        <h1 class="page-title">Expense History</h1>
+      </header>
+
+      <div class="filter-bar">
+        <div class="filter-chips-scroll">
+          <button class="filter-chip active" data-filter="">All</button>
+          <button class="filter-chip" data-filter="Materials">🧱 Materials</button>
+          <button class="filter-chip" data-filter="Equipment">🔧 Equipment</button>
+          <button class="filter-chip" data-filter="Machines">⚙️ Machines</button>
+          <button class="filter-chip" data-filter="Utility">💡 Utility</button>
+          <button class="filter-chip" data-filter="Labor">👷 Labor</button>
+          <button class="filter-chip" data-filter="Bills">📄 Bills</button>
+          <button class="filter-chip" data-filter="Franchise Fee">🏪 Franchise</button>
+          <button class="filter-chip" data-filter="Other">📦 Other</button>
+        </div>
+        <div class="month-filter">
+          <input type="month" id="filter-month" class="month-input">
+          <button id="clear-month" class="clear-month hidden">✕</button>
+        </div>
+      </div>
+
+      <div class="expense-list" id="expense-list"></div>
+
+      <div class="empty-state hidden" id="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>No expenses yet</h3>
+        <p>Start tracking your shop construction costs</p>
+        <button class="empty-add-btn" onclick="switchTab('add')">Add First Expense</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <h3>Delete Expense?</h3>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="modal-btn cancel-btn" onclick="closeDeleteModal()">Cancel</button>
+        <button class="modal-btn delete-btn" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content settings-modal-content">
+      <div class="settings-header">
+        <div class="settings-icon">⚙️</div>
+        <h3>Setup Sync</h3>
+        <p>Enter your GitHub token to sync expenses across devices</p>
+      </div>
+      
+      <div class="settings-steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <span>Go to <strong>GitHub → Settings → Developer Settings → Personal Access Tokens</strong></span>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <span>Generate a token with <strong>repo</strong> scope</span>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <span>Paste it below</span>
+        </div>
+      </div>
+
+      <div class="token-input-group">
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx" class="text-input">
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel-btn" id="skip-token-btn">Skip for now</button>
+        <button class="modal-btn save-btn" id="save-token-btn">Save & Sync</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync Toast -->
+  <div id="sync-toast" class="toast sync-toast hidden">
+    <span class="toast-icon">✓</span>
+    <span class="toast-text">Synced</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
