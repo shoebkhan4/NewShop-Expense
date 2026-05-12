@@ -1,5 +1,14 @@
 [
   {
+    "id": "1778606645599taxprjkc8",
+    "amount": 16000,
+    "category": "Materials",
+    "description": "POP",
+    "date": "2026-05-12",
+    "paidBy": "Papa",
+    "createdAt": "2026-05-12T17:24:05.600Z"
+  },
+  {
     "id": "1778606416638z68btmuj6",
     "amount": 28000,
     "category": "Materials",
