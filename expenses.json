@@ -1,5 +1,14 @@
 [
   {
+    "id": "1778606865575b5pzerbcp",
+    "amount": 15000,
+    "category": "Materials",
+    "description": "Paint putti",
+    "date": "2026-05-12",
+    "paidBy": "Papa",
+    "createdAt": "2026-05-12T17:27:45.575Z"
+  },
+  {
     "id": "1778606764734yi9j7jl8e",
     "amount": 41000,
     "category": "Materials",
