@@ -1,5 +1,14 @@
 [
   {
+    "id": "17786068882732igcmwzpb",
+    "amount": 12500,
+    "category": "Labor",
+    "description": "Tiles labor",
+    "date": "2026-05-12",
+    "paidBy": "Papa",
+    "createdAt": "2026-05-12T17:28:08.273Z"
+  },
+  {
     "id": "1778606865575b5pzerbcp",
     "amount": 15000,
     "category": "Materials",
