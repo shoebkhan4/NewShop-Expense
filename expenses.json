@@ -1,5 +1,14 @@
 [
   {
+    "id": "17786069874762lrph219i",
+    "amount": 7000,
+    "category": "Labor",
+    "description": "Paint labor",
+    "date": "2026-05-12",
+    "paidBy": "Papa",
+    "createdAt": "2026-05-12T17:29:47.476Z"
+  },
+  {
     "id": "1778606959756qij2a24ma",
     "amount": 8500,
     "category": "Materials",
