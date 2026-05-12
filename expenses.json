@@ -1,5 +1,14 @@
 [
   {
+    "id": "1778606959756qij2a24ma",
+    "amount": 8500,
+    "category": "Materials",
+    "description": "Reta cement",
+    "date": "2026-05-12",
+    "paidBy": "Papa",
+    "createdAt": "2026-05-12T17:29:19.756Z"
+  },
+  {
     "id": "17786068882732igcmwzpb",
     "amount": 12500,
     "category": "Labor",
