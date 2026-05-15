@@ -1,5 +1,14 @@
 [
   {
+    "id": "1778852632990axide7wcs",
+    "amount": 1100,
+    "category": "Transport",
+    "description": "Bareilly",
+    "date": "2026-05-15",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-15T13:43:52.990Z"
+  },
+  {
     "id": "17786069874762lrph219i",
     "amount": 7000,
     "category": "Labor",
