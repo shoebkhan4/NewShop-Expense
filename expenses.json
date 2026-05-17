@@ -1,5 +1,14 @@
 [
   {
+    "id": "1778986131668iy6csppg0",
+    "amount": 40000,
+    "category": "Materials",
+    "description": "Ply bood",
+    "date": "2026-05-16",
+    "paidBy": "Shubi",
+    "createdAt": "2026-05-17T02:48:51.668Z"
+  },
+  {
     "id": "1778852632990axide7wcs",
     "amount": 1100,
     "category": "Transport",
