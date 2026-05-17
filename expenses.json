@@ -1,5 +1,14 @@
 [
   {
+    "id": "1778986202329nkh63cei2",
+    "amount": 1700,
+    "category": "Transport",
+    "description": "Ply bood",
+    "date": "2026-05-17",
+    "paidBy": "Bhai card",
+    "createdAt": "2026-05-17T02:50:02.329Z"
+  },
+  {
     "id": "17789861680063hmpkvv40",
     "amount": 500,
     "category": "Transport",
