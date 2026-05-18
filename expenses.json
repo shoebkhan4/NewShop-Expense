@@ -1,5 +1,14 @@
 [
   {
+    "id": "1779109045834b45vrir8t",
+    "amount": 3060,
+    "category": "Materials",
+    "description": "Carpenter material",
+    "date": "2026-05-18",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-18T12:57:25.834Z"
+  },
+  {
     "id": "1778986202329nkh63cei2",
     "amount": 1700,
     "category": "Transport",
