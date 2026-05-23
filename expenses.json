@@ -1,5 +1,14 @@
 [
   {
+    "id": "17795529286609itom1hcm",
+    "amount": 1100,
+    "category": "Materials",
+    "description": "Hardware material",
+    "date": "2026-05-23",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-23T16:15:28.660Z"
+  },
+  {
     "id": "17795529028098yf4mqmtc",
     "amount": 900,
     "category": "Transport",
