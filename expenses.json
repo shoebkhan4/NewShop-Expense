@@ -1,5 +1,14 @@
 [
   {
+    "id": "1779683903802yohjyuq7c",
+    "amount": 900,
+    "category": "Materials",
+    "description": "Machine blade",
+    "date": "2026-05-24",
+    "paidBy": "Anas khan",
+    "createdAt": "2026-05-25T04:38:23.802Z"
+  },
+  {
     "id": "17795529286609itom1hcm",
     "amount": 1100,
     "category": "Materials",
