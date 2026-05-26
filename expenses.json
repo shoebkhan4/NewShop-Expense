@@ -1,5 +1,14 @@
 [
   {
+    "id": "1779816115080ygu3p5m0p",
+    "amount": 300,
+    "category": "Materials",
+    "description": "Material",
+    "date": "2026-05-26",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-26T17:21:55.080Z"
+  },
+  {
     "id": "1779772623950ddh2qlzh1",
     "amount": 1300,
     "category": "Materials",
