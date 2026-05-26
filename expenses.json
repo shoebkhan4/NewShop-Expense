@@ -1,5 +1,14 @@
 [
   {
+    "id": "1779772623950ddh2qlzh1",
+    "amount": 1300,
+    "category": "Materials",
+    "description": "Hardware",
+    "date": "2026-05-25",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-26T05:17:03.950Z"
+  },
+  {
     "id": "1779683903802yohjyuq7c",
     "amount": 900,
     "category": "Materials",
