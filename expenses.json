@@ -1,5 +1,14 @@
 [
   {
+    "id": "1779971628644bze9gutjg",
+    "amount": 150000,
+    "category": "Franchise Fee",
+    "description": "NewShop Fee Advance",
+    "date": "2026-05-28",
+    "paidBy": "Shoeb",
+    "createdAt": "2026-05-28T12:33:48.644Z"
+  },
+  {
     "id": "177997156636576imdmjrb",
     "amount": 50000,
     "category": "Franchise Fee",
