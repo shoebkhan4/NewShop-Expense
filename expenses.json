@@ -1,5 +1,14 @@
 [
   {
+    "id": "177999506758740heoni95",
+    "amount": 118000,
+    "category": "Franchise Fee",
+    "description": "Fees",
+    "date": "2026-03-27",
+    "paidBy": "Papa",
+    "createdAt": "2026-05-28T19:04:27.587Z"
+  },
+  {
     "id": "1779971628644bze9gutjg",
     "amount": 150000,
     "category": "Franchise Fee",
