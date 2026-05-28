@@ -1,5 +1,14 @@
 [
   {
+    "id": "1779995173860i4diwra6s",
+    "amount": 600,
+    "category": "Materials",
+    "description": "Machine blade",
+    "date": "2026-05-27",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-28T19:06:13.860Z"
+  },
+  {
     "id": "177999506758740heoni95",
     "amount": 118000,
     "category": "Franchise Fee",
