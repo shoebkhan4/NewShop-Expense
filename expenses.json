@@ -1,5 +1,14 @@
 [
   {
+    "id": "177997156636576imdmjrb",
+    "amount": 50000,
+    "category": "Franchise Fee",
+    "description": "NewShop Fee Advance",
+    "date": "2026-05-27",
+    "paidBy": "Shoeb",
+    "createdAt": "2026-05-28T12:32:46.365Z"
+  },
+  {
     "id": "1779816115080ygu3p5m0p",
     "amount": 300,
     "category": "Materials",
@@ -142,5 +151,14 @@
     "date": "2026-05-12",
     "paidBy": "Papa",
     "createdAt": "2026-05-12T17:24:05.600Z"
+  },
+  {
+    "id": "1778606416638z68btmuj6",
+    "amount": 28000,
+    "category": "Materials",
+    "description": "Tiles",
+    "date": "2026-05-12",
+    "paidBy": "",
+    "createdAt": "2026-05-12T17:20:16.638Z"
   }
 ]
