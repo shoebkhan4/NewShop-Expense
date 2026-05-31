@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780201791096mfeglo3ag",
+    "amount": 49700,
+    "category": "Materials",
+    "description": "Material",
+    "date": "2026-05-31",
+    "paidBy": "Bhai",
+    "createdAt": "2026-05-31T04:29:51.096Z"
+  },
+  {
     "id": "1779995173860i4diwra6s",
     "amount": 600,
     "category": "Materials",
