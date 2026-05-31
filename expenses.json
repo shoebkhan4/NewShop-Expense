@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780201869847y4jw5hksp",
+    "amount": 500,
+    "category": "Transport",
+    "description": "Petrol",
+    "date": "2026-05-30",
+    "paidBy": "Anas",
+    "createdAt": "2026-05-31T04:31:09.847Z"
+  },
+  {
     "id": "1780201842567k48spb596",
     "amount": 500,
     "category": "Materials",
