@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780313007535l1btm5zm2",
+    "amount": 800,
+    "category": "Materials",
+    "description": "Lock handles",
+    "date": "2026-06-01",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-01T11:23:27.535Z"
+  },
+  {
     "id": "178031275739074esm1e6t",
     "amount": 600,
     "category": "Materials",
