@@ -1,5 +1,14 @@
 [
   {
+    "id": "178031275739074esm1e6t",
+    "amount": 600,
+    "category": "Materials",
+    "description": "Blade",
+    "date": "2026-06-01",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-01T11:19:17.390Z"
+  },
+  {
     "id": "1780312725434rb6tm3ayr",
     "amount": 4500,
     "category": "Materials",
