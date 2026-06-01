@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780312679308ia8h5gp1j",
+    "amount": 341801,
+    "category": "Machines",
+    "description": "Fridge",
+    "date": "2026-06-01",
+    "paidBy": "Bhai",
+    "createdAt": "2026-06-01T11:17:59.308Z"
+  },
+  {
     "id": "1780201869847y4jw5hksp",
     "amount": 500,
     "category": "Transport",
