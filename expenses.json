@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780413706781qq89v1u78",
+    "amount": 4000,
+    "category": "Materials",
+    "description": "Metal pipe for racks",
+    "date": "2026-06-02",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-02T15:21:46.781Z"
+  },
+  {
     "id": "17804136620939d81im5fz",
     "amount": 5000,
     "category": "Materials",
