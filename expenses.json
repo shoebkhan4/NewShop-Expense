@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780413842647ahmx3ctkt",
+    "amount": 400,
+    "category": "Materials",
+    "description": "Bond carpenter",
+    "date": "2026-06-02",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-02T15:24:02.647Z"
+  },
+  {
     "id": "1780413791816j1jzgg02o",
     "amount": 7000,
     "category": "Labor",
