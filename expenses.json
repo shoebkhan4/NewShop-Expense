@@ -1,5 +1,14 @@
 [
   {
+    "id": "17804135111853rf6v7t9k",
+    "amount": 5000,
+    "category": "Permits",
+    "description": "Gst & others advance",
+    "date": "2026-06-02",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-02T15:18:31.185Z"
+  },
+  {
     "id": "1780313007535l1btm5zm2",
     "amount": 800,
     "category": "Materials",
