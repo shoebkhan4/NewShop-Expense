@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780413791816j1jzgg02o",
+    "amount": 7000,
+    "category": "Labor",
+    "description": "Carpenter",
+    "date": "2026-06-02",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-02T15:23:11.816Z"
+  },
+  {
     "id": "17804137763821llmfi6f5",
     "amount": 10000,
     "category": "Transport",
