@@ -1,5 +1,14 @@
 [
   {
+    "id": "17804137763821llmfi6f5",
+    "amount": 10000,
+    "category": "Transport",
+    "description": "Dehli transport",
+    "date": "2026-06-02",
+    "paidBy": "Bhai",
+    "createdAt": "2026-06-02T15:22:56.382Z"
+  },
+  {
     "id": "1780413706781qq89v1u78",
     "amount": 4000,
     "category": "Materials",
