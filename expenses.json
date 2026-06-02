@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780413908334bzdcgpkdb",
+    "amount": 200,
+    "category": "Other",
+    "description": "Advertisement",
+    "date": "2026-06-02",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-02T15:25:08.334Z"
+  },
+  {
     "id": "1780413842647ahmx3ctkt",
     "amount": 400,
     "category": "Materials",
