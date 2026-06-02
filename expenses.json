@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780413921181ir102ehqn",
+    "amount": 200,
+    "category": "Other",
+    "description": "Petrol",
+    "date": "2026-06-02",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-02T15:25:21.181Z"
+  },
+  {
     "id": "1780413908334bzdcgpkdb",
     "amount": 200,
     "category": "Other",
