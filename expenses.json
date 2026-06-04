@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780567311653f2d2nywqp",
+    "amount": 100,
+    "category": "Materials",
+    "description": "Kile",
+    "date": "2026-06-04",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T10:01:51.653Z"
+  },
+  {
     "id": "178056726961302krnpghb",
     "amount": 3100,
     "category": "Materials",
