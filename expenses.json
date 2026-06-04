@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780567121440ewalivch5",
+    "amount": 500,
+    "category": "Labor",
+    "description": "Fridge lord",
+    "date": "2026-06-03",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T09:58:41.440Z"
+  },
+  {
     "id": "17805670884274zxvjd2y2",
     "amount": 2500,
     "category": "Materials",
