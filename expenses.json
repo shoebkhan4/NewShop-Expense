@@ -1,5 +1,14 @@
 [
   {
+    "id": "17805670884274zxvjd2y2",
+    "amount": 2500,
+    "category": "Materials",
+    "description": "Wood batta",
+    "date": "2026-06-03",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T09:58:08.427Z"
+  },
+  {
     "id": "1780413921181ir102ehqn",
     "amount": 200,
     "category": "Other",
