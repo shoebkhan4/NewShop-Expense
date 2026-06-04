@@ -1,5 +1,14 @@
 [
   {
+    "id": "178056726961302krnpghb",
+    "amount": 3100,
+    "category": "Materials",
+    "description": "Plybord",
+    "date": "2026-06-04",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T10:01:09.613Z"
+  },
+  {
     "id": "1780567226776pish768f0",
     "amount": 100,
     "category": "Materials",
