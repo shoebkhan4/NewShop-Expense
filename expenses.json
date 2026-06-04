@@ -1,5 +1,14 @@
 [
   {
+    "id": "17805941038356krk7r7j7",
+    "amount": 830,
+    "category": "Materials",
+    "description": "Rack paint",
+    "date": "2026-06-04",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T17:28:23.835Z"
+  },
+  {
     "id": "1780567323863vm2khkcn2",
     "amount": 200,
     "category": "Other",
