@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780567226776pish768f0",
+    "amount": 100,
+    "category": "Materials",
+    "description": "Light bord",
+    "date": "2026-06-03",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T10:00:26.776Z"
+  },
+  {
     "id": "1780567151070ldki7v0t5",
     "amount": 400,
     "category": "Materials",
