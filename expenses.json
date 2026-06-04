@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780567323863vm2khkcn2",
+    "amount": 200,
+    "category": "Other",
+    "description": "Bike petrol",
+    "date": "2026-06-04",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T10:02:03.863Z"
+  },
+  {
     "id": "1780567311653f2d2nywqp",
     "amount": 100,
     "category": "Materials",
