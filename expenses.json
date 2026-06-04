@@ -1,5 +1,14 @@
 [
   {
+    "id": "1780567151070ldki7v0t5",
+    "amount": 400,
+    "category": "Materials",
+    "description": "Pech",
+    "date": "2026-06-03",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-04T09:59:11.070Z"
+  },
+  {
     "id": "1780567121440ewalivch5",
     "amount": 500,
     "category": "Labor",
