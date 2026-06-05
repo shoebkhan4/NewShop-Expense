@@ -161,7 +161,7 @@ async function handleAddExpense(e) {
   const date = document.getElementById('date').value;
   const paidBy = document.getElementById('paid-by').value.trim();
 
-  if (!amount || !category || !description || !date) {
+  if (isNaN(amount) || amount < 0 || !category || !description || !date) {
     showToast('Please fill all required fields', 'error');
     return;
   }
@@ -430,7 +430,7 @@ async function handleEditExpense(e) {
   const date = document.getElementById('edit-date').value;
   const paidBy = document.getElementById('edit-paid-by').value.trim();
 
-  if (!amount || !category || !description || !date) {
+  if (isNaN(amount) || amount < 0 || !category || !description || !date) {
     showToast('Please fill all required fields', 'error');
     return;
   }
@@ -443,7 +443,7 @@ async function handleEditExpense(e) {
     expense.category !== category ||
     expense.description !== description ||
     expense.date !== date ||
-    expense.paidBy !== paidBy;
+    (expense.paidBy || '') !== paidBy;
 
   if (hasChanged) {
     if (!expense.revisions) {
@@ -456,9 +456,14 @@ async function handleEditExpense(e) {
       category: expense.category,
       description: expense.description,
       date: expense.date,
-      paidBy: expense.paidBy,
+      paidBy: expense.paidBy || '',
       revisedAt: new Date().toISOString()
     });
+
+    // Capping revision history to 15 to prevent unbounded growth in expenses.json
+    if (expense.revisions.length > 15) {
+      expense.revisions = expense.revisions.slice(0, 15);
+    }
 
     // Update with new values
     expense.amount = amount;
