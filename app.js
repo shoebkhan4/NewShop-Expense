@@ -161,7 +161,7 @@ async function handleAddExpense(e) {
   const date = document.getElementById('date').value;
   const paidBy = document.getElementById('paid-by').value.trim();
 
-  if (isNaN(amount) || amount < 0 || !category || !description || !date) {
+  if (isNaN(amount) || amount <= 0 || !category || !description || !date) {
     showToast('Please fill all required fields', 'error');
     return;
   }
@@ -402,7 +402,7 @@ function openEditModal(id) {
         <div class="revision-item">
           <div class="revision-meta">Revision #${revisions.length - idx} · ${formatRevisionDate(rev.revisedAt)}</div>
           <div class="revision-details">
-            <div><strong>Amount:</strong> ₹${rev.amount.toLocaleString('en-IN')}</div>
+            <div><strong>Amount:</strong> ₹${(rev.amount || 0).toLocaleString('en-IN')}</div>
             <div><strong>Category:</strong> ${rev.category}</div>
             <div><strong>Description:</strong> ${escapeHtml(rev.description)}</div>
             <div><strong>Paid By:</strong> ${escapeHtml(rev.paidBy || 'None')}</div>
@@ -430,7 +430,7 @@ async function handleEditExpense(e) {
   const date = document.getElementById('edit-date').value;
   const paidBy = document.getElementById('edit-paid-by').value.trim();
 
-  if (isNaN(amount) || amount < 0 || !category || !description || !date) {
+  if (isNaN(amount) || amount <= 0 || !category || !description || !date) {
     showToast('Please fill all required fields', 'error');
     return;
   }
@@ -443,7 +443,7 @@ async function handleEditExpense(e) {
     expense.category !== category ||
     expense.description !== description ||
     expense.date !== date ||
-    (expense.paidBy || '') !== paidBy;
+    (expense.paidBy || '') !== (paidBy || '');
 
   if (hasChanged) {
     if (!expense.revisions) {
