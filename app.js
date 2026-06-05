@@ -36,6 +36,12 @@ let selectedCategory = '';
 let editSelectedCategory = '';
 let editTargetId = null;
 let activeFilter = '';
+let uploadedDoc = null;
+let editUploadedDoc = null;
+let editTempDocs = [];
+let galleryFilter = 'all';
+let galleryDocuments = [];
+let currentViewerDoc = null;
 
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', init);
@@ -48,6 +54,8 @@ function init() {
   setupForm();
   setupFilters();
   setupSettings();
+  setupDocumentUploads();
+  setupGalleryFilters();
   renderDashboard();
   renderHistory();
 
@@ -91,6 +99,7 @@ function switchTab(tab) {
   });
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'history') renderHistory();
+  if (tab === 'documents') renderDocumentsGallery();
 }
 
 // ===== Settings =====
@@ -135,6 +144,7 @@ function setupForm() {
       chip.classList.add('selected');
       selectedCategory = chip.dataset.value;
       document.getElementById('selected-category').value = selectedCategory;
+      updateMandatoryLabels();
     });
   });
 
@@ -144,6 +154,7 @@ function setupForm() {
       chip.classList.add('selected');
       editSelectedCategory = chip.dataset.value;
       document.getElementById('edit-selected-category').value = editSelectedCategory;
+      updateMandatoryLabels();
     });
   });
 
@@ -155,7 +166,16 @@ function setupForm() {
 async function handleAddExpense(e) {
   e.preventDefault();
 
-  const amount = parseFloat(document.getElementById('amount').value);
+  const amountVal = document.getElementById('amount').value.trim();
+  if (!amountVal) {
+    showToast('Please fill all required fields', 'error');
+    return;
+  }
+  if (!/^\d+$/.test(amountVal)) {
+    showToast('Decimal entry is not allowed. Please enter a whole number.', 'error');
+    return;
+  }
+  const amount = parseInt(amountVal, 10);
   const category = selectedCategory;
   const description = document.getElementById('description').value.trim();
   const date = document.getElementById('date').value;
@@ -166,16 +186,34 @@ async function handleAddExpense(e) {
     return;
   }
 
+  // Validate mandatory document upload for Equipment or Machines
+  if ((category === 'Machines' || category === 'Equipment') && !uploadedDoc) {
+    showToast('Document upload is mandatory for Equipment and Machines!', 'error');
+    return;
+  }
+
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.querySelector('.btn-text').classList.add('hidden');
   btn.querySelector('.btn-loading').classList.remove('hidden');
 
+  let expenseDocs = [];
+  if (uploadedDoc) {
+    const docType = document.querySelector('input[name="expense-doc-type"]:checked').value;
+    expenseDocs.push({
+      base64: uploadedDoc.base64,
+      filename: uploadedDoc.filename,
+      mimeType: uploadedDoc.mimeType,
+      type: docType
+    });
+  }
+
   const expense = {
     id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     amount, category, description, date,
     paidBy: paidBy || '',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    documents: expenseDocs
   };
 
   expenses.unshift(expense);
@@ -197,6 +235,14 @@ async function handleAddExpense(e) {
   document.getElementById('date').value = today();
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
   selectedCategory = '';
+
+  // Reset upload states
+  uploadedDoc = null;
+  document.getElementById('expense-document').value = '';
+  document.getElementById('file-info-display').classList.add('hidden');
+  document.getElementById('doc-type-selection').classList.add('hidden');
+  document.getElementById('upload-trigger-btn').innerHTML = '<span class="upload-icon">📁</span> Select File';
+  updateMandatoryLabels();
 
   btn.disabled = false;
   btn.querySelector('.btn-text').classList.remove('hidden');
@@ -292,11 +338,13 @@ function renderRecent() {
 
   container.innerHTML = recent.map((e, i) => {
     const info = CATEGORIES[e.category] || CATEGORIES['Other'];
+    const hasDoc = e.documents && e.documents.length > 0;
+    const docBadge = hasDoc ? `<span class="attachment-badge" title="Has document(s)">📎</span>` : '';
     return `
       <div class="recent-item" style="animation-delay: ${i * 0.05}s" data-id="${e.id}" tabindex="0" role="button">
         <div class="recent-icon ${info.bg}">${info.emoji}</div>
         <div class="recent-info">
-          <div class="recent-desc">${escapeHtml(e.description)}</div>
+          <div class="recent-desc">${escapeHtml(e.description)}${docBadge}</div>
           <div class="recent-meta">${e.category} · ${formatDate(e.date)}${e.paidBy ? ' · ' + escapeHtml(e.paidBy) : ''}</div>
         </div>
         <div class="recent-amount">-${formatCurrency(e.amount)}</div>
@@ -358,11 +406,13 @@ function renderHistory() {
 
     grouped[date].forEach((e, i) => {
       const info = CATEGORIES[e.category] || CATEGORIES['Other'];
+      const hasDoc = e.documents && e.documents.length > 0;
+      const docBadge = hasDoc ? `<span class="attachment-badge" title="Has document(s)">📎</span>` : '';
       html += `
         <div class="expense-item" style="animation-delay: ${i * 0.04}s" data-id="${e.id}" tabindex="0" role="button">
           <div class="expense-icon ${info.bg}">${info.emoji}</div>
           <div class="expense-details">
-            <div class="expense-desc">${escapeHtml(e.description)}</div>
+            <div class="expense-desc">${escapeHtml(e.description)}${docBadge}</div>
             <div class="expense-category">${e.category}${e.paidBy ? ' · Paid by ' + escapeHtml(e.paidBy) : ''}</div>
           </div>
           <div class="expense-amount">-${formatCurrency(e.amount)}</div>
@@ -410,6 +460,7 @@ function openEditModal(id) {
     listContainer.innerHTML = '<div style="color: var(--text-tertiary); font-size: 0.85rem; text-align: center; padding: 10px 0;">No edit history yet</div>';
   } else {
     listContainer.innerHTML = revisions.map((rev, idx) => {
+      const hasDocs = rev.documents && rev.documents.length > 0;
       return `
         <div class="revision-item">
           <div class="revision-meta">Revision #${revisions.length - idx} · ${formatRevisionDate(rev.revisedAt)}</div>
@@ -418,11 +469,23 @@ function openEditModal(id) {
             <div><strong>Category:</strong> ${escapeHtml(rev.category || 'Other')}</div>
             <div><strong>Description:</strong> ${escapeHtml(rev.description)}</div>
             <div><strong>Paid By:</strong> ${escapeHtml(rev.paidBy || 'None')}</div>
+            ${hasDocs ? `<div><strong>Attachments:</strong> ${rev.documents.length} file(s)</div>` : ''}
           </div>
         </div>
       `;
     }).join('');
   }
+
+  // Reset edit modal file states
+  editUploadedDoc = null;
+  document.getElementById('edit-expense-document').value = '';
+  document.getElementById('edit-file-info-display').classList.add('hidden');
+  document.getElementById('edit-doc-type-selection').classList.add('hidden');
+  document.getElementById('edit-upload-trigger-btn').innerHTML = '<span class="upload-icon">📁</span> Select File';
+
+  editTempDocs = expense.documents ? expense.documents.map(d => ({ ...d })) : [];
+  renderEditExistingDocs();
+  updateMandatoryLabels();
 
   document.getElementById('edit-modal').classList.remove('hidden');
 }
@@ -431,12 +494,23 @@ function closeEditModal() {
   document.getElementById('edit-modal').classList.add('hidden');
   editTargetId = null;
   editSelectedCategory = '';
+  editUploadedDoc = null;
+  editTempDocs = [];
 }
 
 async function handleEditExpense(e) {
   e.preventDefault();
 
-  const amount = parseFloat(document.getElementById('edit-amount').value);
+  const amountVal = document.getElementById('edit-amount').value.trim();
+  if (!amountVal) {
+    showToast('Please fill all required fields', 'error');
+    return;
+  }
+  if (!/^\d+$/.test(amountVal)) {
+    showToast('Decimal entry is not allowed. Please enter a whole number.', 'error');
+    return;
+  }
+  const amount = parseInt(amountVal, 10);
   const category = editSelectedCategory;
   const description = document.getElementById('edit-description').value.trim();
   const date = document.getElementById('edit-date').value;
@@ -450,12 +524,31 @@ async function handleEditExpense(e) {
   const expense = expenses.find(item => item.id === editTargetId);
   if (!expense) return;
 
+  // Append new uploaded doc if any
+  if (editUploadedDoc) {
+    const docType = document.querySelector('input[name="edit-expense-doc-type"]:checked').value;
+    editTempDocs.push({
+      base64: editUploadedDoc.base64,
+      filename: editUploadedDoc.filename,
+      mimeType: editUploadedDoc.mimeType,
+      type: docType
+    });
+  }
+
+  // Validate mandatory document upload for Equipment or Machines
+  if ((category === 'Machines' || category === 'Equipment') && editTempDocs.length === 0) {
+    showToast('Document upload is mandatory for Equipment and Machines!', 'error');
+    return;
+  }
+
+  const docsChanged = !areDocumentsEqual(expense.documents, editTempDocs);
   const hasChanged = 
     expense.amount !== amount ||
     expense.category !== category ||
     expense.description !== description ||
     expense.date !== date ||
-    normalizePaidBy(expense.paidBy) !== paidBy;
+    normalizePaidBy(expense.paidBy) !== paidBy ||
+    docsChanged;
 
   if (hasChanged) {
     if (!expense.revisions) {
@@ -469,6 +562,7 @@ async function handleEditExpense(e) {
       description: expense.description,
       date: expense.date,
       paidBy: normalizePaidBy(expense.paidBy),
+      documents: expense.documents ? expense.documents.map(d => ({ ...d })) : [],
       revisedAt: new Date().toISOString()
     });
 
@@ -483,6 +577,7 @@ async function handleEditExpense(e) {
     expense.description = description;
     expense.date = date;
     expense.paidBy = paidBy;
+    expense.documents = editTempDocs;
 
     saveCache();
     renderDashboard();
@@ -695,3 +790,310 @@ function showToastSync() {
     setTimeout(() => toast.classList.add('hidden'), 400);
   }, 2000);
 }
+
+// ===== Document Management & Gallery Support =====
+function setupDocumentUploads() {
+  // Add Expense form triggers
+  const uploadTriggerBtn = document.getElementById('upload-trigger-btn');
+  const expenseDocumentInput = document.getElementById('expense-document');
+  const removeFileBtn = document.getElementById('remove-file-btn');
+  const fileInfoDisplay = document.getElementById('file-info-display');
+  const docTypeSelection = document.getElementById('doc-type-selection');
+  const selectedFileName = document.getElementById('selected-file-name');
+
+  uploadTriggerBtn.addEventListener('click', () => {
+    expenseDocumentInput.click();
+  });
+
+  expenseDocumentInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      uploadedDoc = {
+        base64: event.target.result,
+        filename: file.name,
+        mimeType: file.type
+      };
+      selectedFileName.textContent = file.name;
+      fileInfoDisplay.classList.remove('hidden');
+      docTypeSelection.classList.remove('hidden');
+      uploadTriggerBtn.innerHTML = '<span class="upload-icon">🔄</span> Change File';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeFileBtn.addEventListener('click', () => {
+    expenseDocumentInput.value = '';
+    uploadedDoc = null;
+    fileInfoDisplay.classList.add('hidden');
+    docTypeSelection.classList.add('hidden');
+    uploadTriggerBtn.innerHTML = '<span class="upload-icon">📁</span> Select File';
+  });
+
+  // Edit Expense form triggers
+  const editUploadTriggerBtn = document.getElementById('edit-upload-trigger-btn');
+  const editExpenseDocumentInput = document.getElementById('edit-expense-document');
+  const editRemoveFileBtn = document.getElementById('edit-remove-file-btn');
+  const editFileInfoDisplay = document.getElementById('edit-file-info-display');
+  const editDocTypeSelection = document.getElementById('edit-doc-type-selection');
+  const editSelectedFileName = document.getElementById('edit-selected-file-name');
+
+  editUploadTriggerBtn.addEventListener('click', () => {
+    editExpenseDocumentInput.click();
+  });
+
+  editExpenseDocumentInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      editUploadedDoc = {
+        base64: event.target.result,
+        filename: file.name,
+        mimeType: file.type
+      };
+      editSelectedFileName.textContent = file.name;
+      editFileInfoDisplay.classList.remove('hidden');
+      editDocTypeSelection.classList.remove('hidden');
+      editUploadTriggerBtn.innerHTML = '<span class="upload-icon">🔄</span> Change File';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  editRemoveFileBtn.addEventListener('click', () => {
+    editExpenseDocumentInput.value = '';
+    editUploadedDoc = null;
+    editFileInfoDisplay.classList.add('hidden');
+    editDocTypeSelection.classList.add('hidden');
+    editUploadTriggerBtn.innerHTML = '<span class="upload-icon">📁</span> Select File';
+  });
+
+  // Persistent click listener for document viewer download/open button
+  document.getElementById('viewer-download-btn').addEventListener('click', () => {
+    if (currentViewerDoc) {
+      const link = document.createElement('a');
+      link.href = currentViewerDoc.base64;
+      link.download = currentViewerDoc.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  });
+}
+
+function updateMandatoryLabels() {
+  const addLabel = document.getElementById('document-upload-label');
+  const isMandatoryAdd = (selectedCategory === 'Machines' || selectedCategory === 'Equipment');
+  addLabel.innerHTML = `Upload Bill or Warranty Document ${isMandatoryAdd ? '<span class="required-star">*</span>' : ''}`;
+
+  const editLabel = document.getElementById('edit-document-upload-label');
+  const isMandatoryEdit = (editSelectedCategory === 'Machines' || editSelectedCategory === 'Equipment');
+  editLabel.innerHTML = `Upload Bill or Warranty Document ${isMandatoryEdit ? '<span class="required-star">*</span>' : ''}`;
+}
+
+function renderEditExistingDocs() {
+  const container = document.getElementById('edit-existing-docs');
+  if (editTempDocs.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = `<label class="form-label" style="margin-top: 10px;">Current Documents</label>` + 
+    editTempDocs.map((doc, idx) => {
+      const isImage = doc.mimeType.startsWith('image/');
+      const preview = isImage 
+        ? `<img src="${doc.base64}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">`
+        : `<span style="font-size: 1.5rem;">📄</span>`;
+      const badgeClass = doc.type === 'Warranty' ? 'badge-warranty' : 'badge-bill';
+
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+            ${preview}
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHtml(doc.filename)}</div>
+              <span class="document-type-badge ${badgeClass}" style="position: static; font-size: 0.6rem; padding: 2px 6px;">${doc.type}</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="view-doc-btn" onclick="previewDocByIndex(${idx})" style="background: var(--accent-bg); color: var(--accent); border: none; font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">View</button>
+            <button type="button" class="delete-doc-btn" onclick="deleteDocByIndex(${idx})" style="background: var(--danger-bg); color: var(--danger); border: none; font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">Delete</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+window.previewDocByIndex = function(idx) {
+  const doc = editTempDocs[idx];
+  if (doc) {
+    viewDocument(doc);
+  }
+};
+
+window.deleteDocByIndex = function(idx) {
+  editTempDocs.splice(idx, 1);
+  renderEditExistingDocs();
+};
+
+function setupGalleryFilters() {
+  const searchInput = document.getElementById('gallery-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      renderDocumentsGallery();
+    });
+  }
+
+  document.querySelectorAll('[data-gfilter]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-gfilter]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      galleryFilter = chip.dataset.gfilter;
+      renderDocumentsGallery();
+    });
+  });
+}
+
+function areDocumentsEqual(docs1, docs2) {
+  // Create shallow copies of document lists and sort them in-place intentionally for comparison
+  const arr1 = [...(docs1 || [])];
+  const arr2 = [...(docs2 || [])];
+  if (arr1.length !== arr2.length) return false;
+  
+  const key = d => `${d.filename || ''}_${d.type || ''}_${d.mimeType || ''}_${d.base64 || ''}`;
+  arr1.sort((a, b) => key(a).localeCompare(key(b)));
+  arr2.sort((a, b) => key(a).localeCompare(key(b)));
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i].filename !== arr2[i].filename ||
+        arr1[i].mimeType !== arr2[i].mimeType ||
+        arr1[i].type !== arr2[i].type ||
+        arr1[i].base64 !== arr2[i].base64) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function renderDocumentsGallery() {
+  const container = document.getElementById('documents-grid');
+  const emptyState = document.getElementById('gallery-empty-state');
+  const searchQuery = document.getElementById('gallery-search').value.toLowerCase().trim();
+
+  // Extract all documents from all expenses
+  let allDocs = [];
+  expenses.forEach(e => {
+    if (e.documents && e.documents.length > 0) {
+      e.documents.forEach((doc, idx) => {
+        allDocs.push({
+          ...doc,
+          expenseId: e.id,
+          expenseDesc: e.description,
+          expenseDate: e.date,
+          expenseAmount: e.amount,
+          expenseCategory: e.category,
+          docIndex: idx
+        });
+      });
+    }
+  });
+
+  // Apply filters
+  if (galleryFilter !== 'all') {
+    allDocs = allDocs.filter(d => d.type === galleryFilter);
+  }
+
+  // Apply search query
+  if (searchQuery) {
+    allDocs = allDocs.filter(d => 
+      d.filename.toLowerCase().includes(searchQuery) ||
+      d.expenseDesc.toLowerCase().includes(searchQuery) ||
+      d.expenseCategory.toLowerCase().includes(searchQuery)
+    );
+  }
+
+  if (allDocs.length === 0) {
+    container.innerHTML = '';
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+
+  container.innerHTML = allDocs.map((doc, idx) => {
+    const isImage = doc.mimeType.startsWith('image/');
+    const badgeClass = doc.type === 'Warranty' ? 'badge-warranty' : 'badge-bill';
+    const previewHtml = isImage
+      ? `<img src="${doc.base64}" class="document-thumb" alt="${escapeHtml(doc.filename)}">`
+      : `<span class="document-pdf-icon">📄</span>`;
+
+    return `
+      <div class="document-gallery-card" onclick="viewDocFromGallery(${idx})">
+        <div class="document-thumb-container">
+          ${previewHtml}
+          <span class="document-type-badge ${badgeClass}">${doc.type}</span>
+        </div>
+        <div class="document-gallery-info">
+          <div class="document-gallery-desc">${escapeHtml(doc.expenseDesc)}</div>
+          <div class="document-gallery-meta">${escapeHtml(doc.expenseCategory)} · ${formatDate(doc.expenseDate)}</div>
+          <div class="document-gallery-amount">${formatCurrency(doc.expenseAmount)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Save filtered list globally in the module scope
+  galleryDocuments = allDocs;
+}
+
+window.viewDocFromGallery = function(idx) {
+  const doc = galleryDocuments[idx];
+  if (doc) {
+    viewDocument(doc);
+  }
+};
+
+function viewDocument(doc) {
+  const modal = document.getElementById('viewer-modal');
+  const title = document.getElementById('viewer-title');
+  const content = document.getElementById('viewer-content');
+
+  currentViewerDoc = doc;
+  title.textContent = doc.filename;
+  content.innerHTML = '';
+
+  if (doc.mimeType.startsWith('image/')) {
+    const img = document.createElement('img');
+    img.src = doc.base64;
+    img.alt = doc.filename;
+    content.appendChild(img);
+  } else if (doc.mimeType === 'application/pdf') {
+    const pdfDiv = document.createElement('div');
+    pdfDiv.style.textAlign = 'center';
+    pdfDiv.style.padding = '20px';
+    pdfDiv.innerHTML = `
+      <div style="font-size: 4rem; margin-bottom: 10px;">📄</div>
+      <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); word-break: break-all;">${escapeHtml(doc.filename)}</div>
+      <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 4px;">PDF Document</div>
+    `;
+    content.appendChild(pdfDiv);
+  } else {
+    const otherDiv = document.createElement('div');
+    otherDiv.style.textAlign = 'center';
+    otherDiv.style.padding = '20px';
+    otherDiv.innerHTML = `
+      <div style="font-size: 4rem; margin-bottom: 10px;">📎</div>
+      <div style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); word-break: break-all;">${escapeHtml(doc.filename)}</div>
+    `;
+    content.appendChild(otherDiv);
+  }
+
+  modal.classList.remove('hidden');
+}
+
+window.closeViewerModal = function() {
+  document.getElementById('viewer-modal').classList.add('hidden');
+};

@@ -42,6 +42,10 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <span>History</span>
       </button>
+      <button class="nav-item" data-tab="documents">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span>Documents</span>
+      </button>
     </nav>
 
     <!-- ===== DASHBOARD TAB ===== -->
@@ -159,6 +163,28 @@
           </div>
         </div>
 
+        <div class="form-section" id="document-upload-section">
+          <label class="form-label" id="document-upload-label">Upload Bill or Warranty Document</label>
+          <div class="file-upload-wrapper">
+            <input type="file" id="expense-document" accept="image/*,application/pdf" style="display: none;">
+            <button type="button" class="file-upload-btn" id="upload-trigger-btn">
+              <span class="upload-icon">📁</span> Select File
+            </button>
+            <div class="doc-type-selection hidden" id="doc-type-selection" style="margin-top: 10px; display: flex; gap: 15px; justify-content: center;">
+              <label class="doc-type-option" style="cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+                <input type="radio" name="expense-doc-type" value="Bill" checked> 📄 Bill
+              </label>
+              <label class="doc-type-option" style="cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+                <input type="radio" name="expense-doc-type" value="Warranty"> 🛡️ Warranty
+              </label>
+            </div>
+            <div class="file-info hidden" id="file-info-display" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <span class="file-name" id="selected-file-name" style="font-size: 0.85rem; font-weight: 500; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80%;"></span>
+              <button type="button" class="remove-file-btn" id="remove-file-btn" style="background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--danger); font-weight: bold; padding: 4px;">✕</button>
+            </div>
+          </div>
+        </div>
+
         <button type="submit" class="submit-btn" id="submit-btn">
           <span class="btn-text">Add Expense</span>
           <span class="btn-loading hidden">
@@ -205,6 +231,32 @@
         <h3>No expenses yet</h3>
         <p>Start tracking your shop construction costs</p>
         <button class="empty-add-btn" onclick="switchTab('add')">Add First Expense</button>
+      </div>
+    </section>
+
+    <!-- ===== DOCUMENTS TAB ===== -->
+    <section id="tab-documents" class="tab-content">
+      <header class="app-header">
+        <h1 class="page-title">Document Gallery</h1>
+      </header>
+
+      <div class="filter-bar">
+        <div class="gallery-search-container" style="margin-bottom: 12px;">
+          <input type="text" id="gallery-search" placeholder="Search documents..." class="text-input" autocomplete="off">
+        </div>
+        <div class="filter-chips-scroll" style="margin-bottom: 12px; display: flex; gap: 8px;">
+          <button class="filter-chip active" id="gallery-filter-all" data-gfilter="all">All</button>
+          <button class="filter-chip" id="gallery-filter-bill" data-gfilter="Bill">📄 Bills Only</button>
+          <button class="filter-chip" id="gallery-filter-warranty" data-gfilter="Warranty">🛡️ Warranty Only</button>
+        </div>
+      </div>
+
+      <div class="documents-grid" id="documents-grid"></div>
+
+      <div class="empty-state hidden" id="gallery-empty-state">
+        <div class="empty-icon">📂</div>
+        <h3>No documents found</h3>
+        <p>No documents uploaded yet, or none match the search criteria.</p>
       </div>
     </section>
   </div>
@@ -256,6 +308,30 @@
           <div class="form-section flex-1">
             <label class="form-label">Paid By</label>
             <input type="text" id="edit-paid-by" placeholder="Name" class="text-input" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-section" id="edit-document-upload-section">
+          <label class="form-label" id="edit-document-upload-label">Upload Bill or Warranty Document</label>
+          <div class="file-upload-wrapper">
+            <input type="file" id="edit-expense-document" accept="image/*,application/pdf" style="display: none;">
+            <button type="button" class="file-upload-btn" id="edit-upload-trigger-btn">
+              <span class="upload-icon">📁</span> Select File
+            </button>
+            <div class="doc-type-selection hidden" id="edit-doc-type-selection" style="margin-top: 10px; display: flex; gap: 15px; justify-content: center;">
+              <label class="doc-type-option" style="cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+                <input type="radio" name="edit-expense-doc-type" value="Bill" checked> 📄 Bill
+              </label>
+              <label class="doc-type-option" style="cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+                <input type="radio" name="edit-expense-doc-type" value="Warranty"> 🛡️ Warranty
+              </label>
+            </div>
+            <div class="file-info hidden" id="edit-file-info-display" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              <span class="file-name" id="edit-selected-file-name" style="font-size: 0.85rem; font-weight: 500; color: var(--text-primary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80%;"></span>
+              <button type="button" class="remove-file-btn" id="edit-remove-file-btn" style="background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--danger); font-weight: bold; padding: 4px;">✕</button>
+            </div>
+            <!-- Section to display existing documents of the expense -->
+            <div id="edit-existing-docs" style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
           </div>
         </div>
 
@@ -312,6 +388,23 @@
   <div id="sync-toast" class="toast sync-toast hidden">
     <span class="toast-icon">✓</span>
     <span class="toast-text">Synced</span>
+  </div>
+
+  <!-- Document Viewer Modal -->
+  <div id="viewer-modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeViewerModal()"></div>
+    <div class="modal-content viewer-modal-content">
+      <div class="viewer-header">
+        <h3 id="viewer-title">Document Preview</h3>
+        <button class="close-viewer-btn" onclick="closeViewerModal()">✕</button>
+      </div>
+      <div class="viewer-body">
+        <div id="viewer-content"></div>
+      </div>
+      <div class="viewer-footer" style="margin-top: 15px;">
+        <button id="viewer-download-btn" class="modal-btn save-btn" style="width: 100%;">Download / Open File</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
