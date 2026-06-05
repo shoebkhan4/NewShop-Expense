@@ -33,8 +33,9 @@ const CATEGORIES = {
 let expenses = [];
 let fileSha = null;
 let selectedCategory = '';
+let editSelectedCategory = '';
+let editTargetId = null;
 let activeFilter = '';
-let deleteTargetId = null;
 
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', init);
@@ -128,18 +129,27 @@ function openSettings() {
 
 // ===== Form Setup =====
 function setupForm() {
-  document.querySelectorAll('.chip').forEach(chip => {
+  document.querySelectorAll('#category-chips .chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      document.querySelectorAll('#category-chips .chip').forEach(c => c.classList.remove('selected'));
       chip.classList.add('selected');
       selectedCategory = chip.dataset.value;
       document.getElementById('selected-category').value = selectedCategory;
     });
   });
 
+  document.querySelectorAll('#edit-category-chips .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#edit-category-chips .chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      editSelectedCategory = chip.dataset.value;
+      document.getElementById('edit-selected-category').value = editSelectedCategory;
+    });
+  });
+
   document.getElementById('expense-form').addEventListener('submit', handleAddExpense);
-  document.querySelector('#delete-modal .modal-backdrop').addEventListener('click', closeDeleteModal);
-  document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
+  document.getElementById('edit-expense-form').addEventListener('submit', handleEditExpense);
+  document.querySelector('#edit-modal .modal-backdrop').addEventListener('click', closeEditModal);
 }
 
 async function handleAddExpense(e) {
@@ -283,7 +293,7 @@ function renderRecent() {
   container.innerHTML = recent.map((e, i) => {
     const info = CATEGORIES[e.category] || CATEGORIES['Other'];
     return `
-      <div class="recent-item" style="animation-delay: ${i * 0.05}s">
+      <div class="recent-item" style="animation-delay: ${i * 0.05}s" data-id="${e.id}">
         <div class="recent-icon ${info.bg}">${info.emoji}</div>
         <div class="recent-info">
           <div class="recent-desc">${escapeHtml(e.description)}</div>
@@ -293,6 +303,10 @@ function renderRecent() {
       </div>
     `;
   }).join('');
+
+  container.querySelectorAll('.recent-item').forEach(item => {
+    item.addEventListener('click', () => openEditModal(item.dataset.id));
+  });
 }
 
 // ===== Render History =====
@@ -352,60 +366,138 @@ function renderHistory() {
   });
 
   container.innerHTML = html;
-  setupSwipeDelete();
-}
 
-function setupSwipeDelete() {
-  document.querySelectorAll('.expense-item').forEach(item => {
-    let startX = 0;
-    let currentX = 0;
-
-    item.addEventListener('touchstart', (e) => {
-      startX = e.touches[0].clientX;
-    });
-
-    item.addEventListener('touchmove', (e) => {
-      currentX = e.touches[0].clientX;
-      const diff = startX - currentX;
-      if (diff > 30) {
-        item.style.transform = `translateX(-${Math.min(diff - 30, 80)}px)`;
-      }
-    });
-
-    item.addEventListener('touchend', () => {
-      const diff = startX - currentX;
-      if (diff > 100) {
-        deleteTargetId = item.dataset.id;
-        document.getElementById('delete-modal').classList.remove('hidden');
-      }
-      item.style.transform = '';
-    });
+  container.querySelectorAll('.expense-item').forEach(item => {
+    item.addEventListener('click', () => openEditModal(item.dataset.id));
   });
 }
 
-function closeDeleteModal() {
-  document.getElementById('delete-modal').classList.add('hidden');
-  deleteTargetId = null;
+// ===== Edit Expense Modal =====
+function openEditModal(id) {
+  const expense = expenses.find(e => e.id === id);
+  if (!expense) return;
+
+  editTargetId = id;
+  editSelectedCategory = expense.category;
+
+  document.getElementById('edit-amount').value = expense.amount;
+  document.getElementById('edit-description').value = expense.description;
+  document.getElementById('edit-date').value = expense.date;
+  document.getElementById('edit-paid-by').value = expense.paidBy || '';
+  document.getElementById('edit-selected-category').value = expense.category;
+
+  // Set the category chip
+  document.querySelectorAll('#edit-category-chips .chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.value === expense.category);
+  });
+
+  // Render revisions
+  const listContainer = document.getElementById('edit-revisions-list');
+  const revisions = expense.revisions || [];
+  if (revisions.length === 0) {
+    listContainer.innerHTML = '<div style="color: var(--text-tertiary); font-size: 0.85rem; text-align: center; padding: 10px 0;">No edit history yet</div>';
+  } else {
+    listContainer.innerHTML = revisions.map((rev, idx) => {
+      return `
+        <div class="revision-item">
+          <div class="revision-meta">Revision #${revisions.length - idx} · ${formatRevisionDate(rev.revisedAt)}</div>
+          <div class="revision-details">
+            <div><strong>Amount:</strong> ₹${rev.amount.toLocaleString('en-IN')}</div>
+            <div><strong>Category:</strong> ${rev.category}</div>
+            <div><strong>Description:</strong> ${escapeHtml(rev.description)}</div>
+            <div><strong>Paid By:</strong> ${escapeHtml(rev.paidBy || 'None')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('edit-modal').classList.remove('hidden');
 }
 
-async function confirmDelete() {
-  if (!deleteTargetId) return;
-  expenses = expenses.filter(e => e.id !== deleteTargetId);
-  saveCache();
-  renderDashboard();
-  renderHistory();
-  closeDeleteModal();
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.add('hidden');
+  editTargetId = null;
+  editSelectedCategory = '';
+}
 
-  if (GITHUB_TOKEN) {
-    try {
-      await syncToGitHub();
-      showToast('Expense deleted', 'success');
-    } catch (err) {
-      showToast('Deleted locally, will sync later', 'error');
+async function handleEditExpense(e) {
+  e.preventDefault();
+
+  const amount = parseFloat(document.getElementById('edit-amount').value);
+  const category = editSelectedCategory;
+  const description = document.getElementById('edit-description').value.trim();
+  const date = document.getElementById('edit-date').value;
+  const paidBy = document.getElementById('edit-paid-by').value.trim();
+
+  if (!amount || !category || !description || !date) {
+    showToast('Please fill all required fields', 'error');
+    return;
+  }
+
+  const expense = expenses.find(item => item.id === editTargetId);
+  if (!expense) return;
+
+  const hasChanged = 
+    expense.amount !== amount ||
+    expense.category !== category ||
+    expense.description !== description ||
+    expense.date !== date ||
+    expense.paidBy !== paidBy;
+
+  if (hasChanged) {
+    if (!expense.revisions) {
+      expense.revisions = [];
+    }
+
+    // Capture previous values in revisions history
+    expense.revisions.unshift({
+      amount: expense.amount,
+      category: expense.category,
+      description: expense.description,
+      date: expense.date,
+      paidBy: expense.paidBy,
+      revisedAt: new Date().toISOString()
+    });
+
+    // Update with new values
+    expense.amount = amount;
+    expense.category = category;
+    expense.description = description;
+    expense.date = date;
+    expense.paidBy = paidBy;
+
+    saveCache();
+    renderDashboard();
+    renderHistory();
+
+    if (GITHUB_TOKEN) {
+      try {
+        await syncToGitHub();
+        showToast('Expense updated & synced!', 'success');
+      } catch (err) {
+        showToast('Updated locally, will sync later', 'error');
+      }
+    } else {
+      showToast('Updated locally', 'success');
     }
   } else {
-    showToast('Deleted locally', 'success');
+    showToast('No changes made', 'success');
   }
+
+  closeEditModal();
+}
+
+function formatRevisionDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
 }
 
 // ===== GitHub Sync =====
