@@ -507,12 +507,15 @@ function formatRevisionDate(dateStr) {
 }
 
 function normalizePaidBy(value) {
-  return typeof value === 'string' ? value.trim() : String(value || '').trim();
+  return (value ?? '').toString().trim();
 }
 
 function formatRevisionAmount(amount) {
   const num = typeof amount === 'number' && isFinite(amount) ? amount : 0;
-  return num.toLocaleString('en-IN');
+  return num.toLocaleString('en-IN', {
+    minimumFractionDigits: Number.isInteger(num) ? 0 : 2,
+    maximumFractionDigits: 2
+  });
 }
 
 // ===== GitHub Sync =====
