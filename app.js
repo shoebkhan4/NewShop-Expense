@@ -159,7 +159,7 @@ async function handleAddExpense(e) {
   const category = selectedCategory;
   const description = document.getElementById('description').value.trim();
   const date = document.getElementById('date').value;
-  const paidBy = document.getElementById('paid-by').value.trim();
+  const paidBy = normalizePaidBy(document.getElementById('paid-by').value);
 
   if (isNaN(amount) || amount <= 0 || !category || !description || !date) {
     showToast('Please fill all required fields', 'error');
@@ -402,7 +402,7 @@ function openEditModal(id) {
         <div class="revision-item">
           <div class="revision-meta">Revision #${revisions.length - idx} · ${formatRevisionDate(rev.revisedAt)}</div>
           <div class="revision-details">
-            <div><strong>Amount:</strong> ₹${(rev.amount || 0).toLocaleString('en-IN')}</div>
+            <div><strong>Amount:</strong> ₹${(typeof rev.amount === 'number' && isFinite(rev.amount) ? rev.amount : 0).toLocaleString('en-IN')}</div>
             <div><strong>Category:</strong> ${rev.category}</div>
             <div><strong>Description:</strong> ${escapeHtml(rev.description)}</div>
             <div><strong>Paid By:</strong> ${escapeHtml(rev.paidBy || 'None')}</div>
@@ -428,7 +428,7 @@ async function handleEditExpense(e) {
   const category = editSelectedCategory;
   const description = document.getElementById('edit-description').value.trim();
   const date = document.getElementById('edit-date').value;
-  const paidBy = document.getElementById('edit-paid-by').value.trim();
+  const paidBy = normalizePaidBy(document.getElementById('edit-paid-by').value);
 
   if (isNaN(amount) || amount <= 0 || !category || !description || !date) {
     showToast('Please fill all required fields', 'error');
@@ -443,7 +443,7 @@ async function handleEditExpense(e) {
     expense.category !== category ||
     expense.description !== description ||
     expense.date !== date ||
-    (expense.paidBy || '') !== (paidBy || '');
+    normalizePaidBy(expense.paidBy) !== paidBy;
 
   if (hasChanged) {
     if (!expense.revisions) {
@@ -456,7 +456,7 @@ async function handleEditExpense(e) {
       category: expense.category,
       description: expense.description,
       date: expense.date,
-      paidBy: expense.paidBy || '',
+      paidBy: normalizePaidBy(expense.paidBy),
       revisedAt: new Date().toISOString()
     });
 
@@ -495,6 +495,7 @@ async function handleEditExpense(e) {
 
 function formatRevisionDate(dateStr) {
   const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 'Unknown Date';
   return d.toLocaleString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -503,6 +504,10 @@ function formatRevisionDate(dateStr) {
     minute: '2-digit',
     hour12: true
   });
+}
+
+function normalizePaidBy(value) {
+  return typeof value === 'string' ? value.trim() : (value || '').toString().trim();
 }
 
 // ===== GitHub Sync =====
