@@ -293,7 +293,7 @@ function renderRecent() {
   container.innerHTML = recent.map((e, i) => {
     const info = CATEGORIES[e.category] || CATEGORIES['Other'];
     return `
-      <div class="recent-item" style="animation-delay: ${i * 0.05}s" data-id="${e.id}">
+      <div class="recent-item" style="animation-delay: ${i * 0.05}s" data-id="${e.id}" tabindex="0" role="button">
         <div class="recent-icon ${info.bg}">${info.emoji}</div>
         <div class="recent-info">
           <div class="recent-desc">${escapeHtml(e.description)}</div>
@@ -306,6 +306,12 @@ function renderRecent() {
 
   container.querySelectorAll('.recent-item').forEach(item => {
     item.addEventListener('click', () => openEditModal(item.dataset.id));
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openEditModal(item.dataset.id);
+      }
+    });
   });
 }
 
@@ -353,7 +359,7 @@ function renderHistory() {
     grouped[date].forEach((e, i) => {
       const info = CATEGORIES[e.category] || CATEGORIES['Other'];
       html += `
-        <div class="expense-item" style="animation-delay: ${i * 0.04}s" data-id="${e.id}">
+        <div class="expense-item" style="animation-delay: ${i * 0.04}s" data-id="${e.id}" tabindex="0" role="button">
           <div class="expense-icon ${info.bg}">${info.emoji}</div>
           <div class="expense-details">
             <div class="expense-desc">${escapeHtml(e.description)}</div>
@@ -369,6 +375,12 @@ function renderHistory() {
 
   container.querySelectorAll('.expense-item').forEach(item => {
     item.addEventListener('click', () => openEditModal(item.dataset.id));
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openEditModal(item.dataset.id);
+      }
+    });
   });
 }
 
@@ -403,7 +415,7 @@ function openEditModal(id) {
           <div class="revision-meta">Revision #${revisions.length - idx} · ${formatRevisionDate(rev.revisedAt)}</div>
           <div class="revision-details">
             <div><strong>Amount:</strong> ₹${formatRevisionAmount(rev.amount)}</div>
-            <div><strong>Category:</strong> ${rev.category}</div>
+            <div><strong>Category:</strong> ${escapeHtml(rev.category || 'Other')}</div>
             <div><strong>Description:</strong> ${escapeHtml(rev.description)}</div>
             <div><strong>Paid By:</strong> ${escapeHtml(rev.paidBy || 'None')}</div>
           </div>
