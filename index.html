@@ -209,16 +209,66 @@
     </section>
   </div>
 
-  <!-- Delete Confirmation Modal -->
-  <div id="delete-modal" class="modal hidden">
+  <!-- Edit Expense Modal -->
+  <div id="edit-modal" class="modal hidden">
     <div class="modal-backdrop"></div>
-    <div class="modal-content">
-      <h3>Delete Expense?</h3>
-      <p>This action cannot be undone.</p>
-      <div class="modal-actions">
-        <button class="modal-btn cancel-btn" onclick="closeDeleteModal()">Cancel</button>
-        <button class="modal-btn delete-btn" id="confirm-delete-btn">Delete</button>
+    <div class="modal-content edit-modal-content">
+      <div class="settings-header">
+        <div class="settings-icon">✏️</div>
+        <h3>Edit Expense</h3>
+        <p>Update expense details. Revisions are tracked below.</p>
       </div>
+
+      <form id="edit-expense-form" class="expense-form">
+        <div class="amount-input-section" style="margin-bottom: 20px;">
+          <span class="currency-symbol">₹</span>
+          <input type="number" id="edit-amount" step="1" min="0" required placeholder="0" class="amount-input" inputmode="numeric">
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Category</label>
+          <div class="category-chips" id="edit-category-chips">
+            <button type="button" class="chip" data-value="Materials">🧱 Materials</button>
+            <button type="button" class="chip" data-value="Equipment">🔧 Equipment</button>
+            <button type="button" class="chip" data-value="Machines">⚙️ Machines</button>
+            <button type="button" class="chip" data-value="Utility">💡 Utility</button>
+            <button type="button" class="chip" data-value="Labor">👷 Labor</button>
+            <button type="button" class="chip" data-value="Bills">📄 Bills</button>
+            <button type="button" class="chip" data-value="Franchise Fee">🏪 Franchise Fee</button>
+            <button type="button" class="chip" data-value="Permits">📋 Permits</button>
+            <button type="button" class="chip" data-value="Transport">🚛 Transport</button>
+            <button type="button" class="chip" data-value="Food">🍕 Food</button>
+            <button type="button" class="chip" data-value="Other">📦 Other</button>
+          </div>
+          <input type="hidden" id="edit-selected-category" required>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Description</label>
+          <input type="text" id="edit-description" required placeholder="What was this expense for?" class="text-input" autocomplete="off">
+        </div>
+
+        <div class="form-row">
+          <div class="form-section flex-1">
+            <label class="form-label">Date</label>
+            <input type="date" id="edit-date" required class="text-input">
+          </div>
+          <div class="form-section flex-1">
+            <label class="form-label">Paid By</label>
+            <input type="text" id="edit-paid-by" placeholder="Name" class="text-input" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="revisions-section">
+          <label class="form-label">Revision History</label>
+          <div id="edit-revisions-list" class="revisions-list"></div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+          <button type="button" class="modal-btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="modal-btn save-btn" id="edit-save-btn">Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 

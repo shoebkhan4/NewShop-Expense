@@ -390,6 +390,18 @@ input, button, select, textarea {
   transition: var(--transition);
   animation: slideUp 0.3s ease forwards;
   opacity: 0;
+  cursor: pointer;
+}
+
+.recent-item:hover {
+  background: var(--surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.recent-item:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
 
 @keyframes slideUp {
@@ -835,30 +847,18 @@ input, button, select, textarea {
   opacity: 0;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
-.expense-item.swiping {
-  transition: none;
+.expense-item:hover {
+  background: var(--surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.expense-item .delete-bg {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 80px;
-  background: var(--danger);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.expense-item.swiping .delete-bg {
-  opacity: 1;
+.expense-item:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .expense-icon {
@@ -1197,4 +1197,51 @@ input, button, select, textarea {
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 4px;
+}
+
+/* ===== Edit Modal & Revisions ===== */
+.edit-modal-content {
+  max-width: 440px;
+  text-align: left;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.revisions-section {
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+}
+
+.revisions-list {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.revision-item {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+}
+
+.revision-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.revision-details {
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.revision-details div {
+  margin-bottom: 2px;
 }
