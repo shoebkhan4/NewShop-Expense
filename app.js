@@ -402,7 +402,7 @@ function openEditModal(id) {
         <div class="revision-item">
           <div class="revision-meta">Revision #${revisions.length - idx} · ${formatRevisionDate(rev.revisedAt)}</div>
           <div class="revision-details">
-            <div><strong>Amount:</strong> ₹${(typeof rev.amount === 'number' && isFinite(rev.amount) ? rev.amount : 0).toLocaleString('en-IN')}</div>
+            <div><strong>Amount:</strong> ₹${formatRevisionAmount(rev.amount)}</div>
             <div><strong>Category:</strong> ${rev.category}</div>
             <div><strong>Description:</strong> ${escapeHtml(rev.description)}</div>
             <div><strong>Paid By:</strong> ${escapeHtml(rev.paidBy || 'None')}</div>
@@ -507,7 +507,12 @@ function formatRevisionDate(dateStr) {
 }
 
 function normalizePaidBy(value) {
-  return typeof value === 'string' ? value.trim() : (value || '').toString().trim();
+  return typeof value === 'string' ? value.trim() : String(value || '').trim();
+}
+
+function formatRevisionAmount(amount) {
+  const num = typeof amount === 'number' && isFinite(amount) ? amount : 0;
+  return num.toLocaleString('en-IN');
 }
 
 // ===== GitHub Sync =====
