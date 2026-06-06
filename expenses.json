@@ -1,5 +1,15 @@
 [
   {
+    "id": "17807660031704o1jvlq9b",
+    "amount": 500,
+    "category": "Materials",
+    "description": "Bond",
+    "date": "2026-06-06",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-06T17:13:23.170Z",
+    "documents": []
+  },
+  {
     "id": "17807659660984he523i3h",
     "amount": 800,
     "category": "Transport",
