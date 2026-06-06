@@ -1,5 +1,15 @@
 [
   {
+    "id": "1780765883752jzfvl5t0b",
+    "amount": 13800,
+    "category": "Materials",
+    "description": "Plybord",
+    "date": "2026-06-06",
+    "paidBy": "Bhai",
+    "createdAt": "2026-06-06T17:11:23.752Z",
+    "documents": []
+  },
+  {
     "id": "1780594143827pd4v1a6ov",
     "amount": 250,
     "category": "Other",
