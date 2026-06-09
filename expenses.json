@@ -1,5 +1,15 @@
 [
   {
+    "id": "1780985454154f9aorm19j",
+    "amount": 250,
+    "category": "Materials",
+    "description": "L Patti",
+    "date": "2026-06-09",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-09T06:10:54.154Z",
+    "documents": []
+  },
+  {
     "id": "1780985414176libmmid0s",
     "amount": 95000,
     "category": "Materials",
