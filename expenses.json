@@ -1,5 +1,15 @@
 [
   {
+    "id": "1780978129900cpuk0sgfk",
+    "amount": 600,
+    "category": "Materials",
+    "description": "Hardware",
+    "date": "2026-06-08",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-09T04:08:49.900Z",
+    "documents": []
+  },
+  {
     "id": "1780978071776rvt880ldw",
     "amount": 450,
     "category": "Materials",
