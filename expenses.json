@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781000374640yxw7x0p5q",
+    "amount": 1000,
+    "category": "Materials",
+    "description": "Machine blade",
+    "date": "2026-06-09",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-09T10:19:34.640Z",
+    "documents": []
+  },
+  {
     "id": "1781000340175h7yqtcaa9",
     "amount": 17000,
     "category": "Permits",
