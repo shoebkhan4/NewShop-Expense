@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781000340175h7yqtcaa9",
+    "amount": 17000,
+    "category": "Permits",
+    "description": "Fire & labour",
+    "date": "2026-06-09",
+    "paidBy": "Bhai",
+    "createdAt": "2026-06-09T10:19:00.176Z",
+    "documents": []
+  },
+  {
     "id": "1780985491503yaw4gckv7",
     "amount": 500,
     "category": "Materials",
