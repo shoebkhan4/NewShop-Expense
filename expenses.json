@@ -1,5 +1,15 @@
 [
   {
+    "id": "1780978146719zwuzw9nd1",
+    "amount": 150000,
+    "category": "Franchise Fee",
+    "description": "Fee",
+    "date": "2026-06-08",
+    "paidBy": "Bhai",
+    "createdAt": "2026-06-09T04:09:06.719Z",
+    "documents": []
+  },
+  {
     "id": "1780978129900cpuk0sgfk",
     "amount": 600,
     "category": "Materials",
