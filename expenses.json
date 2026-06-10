@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781061550712z54qr9nb8",
+    "amount": 100,
+    "category": "Labor",
+    "description": "Tuk tuk",
+    "date": "2026-06-10",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-10T03:19:10.712Z",
+    "documents": []
+  },
+  {
     "id": "1781061529162a4og84yol",
     "amount": 160,
     "category": "Other",
