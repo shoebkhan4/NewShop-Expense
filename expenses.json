@@ -1,5 +1,15 @@
 [
   {
+    "id": "17810615945121ndc7d2jg",
+    "amount": 100,
+    "category": "Labor",
+    "description": "Amaan advance",
+    "date": "2026-06-09",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-10T03:19:54.512Z",
+    "documents": []
+  },
+  {
     "id": "1781061550712z54qr9nb8",
     "amount": 100,
     "category": "Labor",
