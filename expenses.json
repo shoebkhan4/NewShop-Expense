@@ -1,5 +1,15 @@
 [
   {
+    "id": "17810612365888lu7kffxc",
+    "amount": 1500,
+    "category": "Labor",
+    "description": "Labour",
+    "date": "2026-06-09",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-10T03:13:56.588Z",
+    "documents": []
+  },
+  {
     "id": "1781000374640yxw7x0p5q",
     "amount": 1000,
     "category": "Materials",
