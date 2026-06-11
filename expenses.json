@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781186975809nba2jj6qt",
+    "amount": 50000,
+    "category": "Materials",
+    "description": "Amaan advance",
+    "date": "2026-06-10",
+    "paidBy": "Bhai",
+    "createdAt": "2026-06-11T14:09:35.809Z",
+    "documents": []
+  },
+  {
     "id": "17810615945121ndc7d2jg",
     "amount": 100,
     "category": "Labor",
