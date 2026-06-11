@@ -103,11 +103,22 @@
     "id": "17810612365888lu7kffxc",
     "amount": 1500,
     "category": "Labor",
-    "description": "Labour",
+    "description": "Labour carprntr",
     "date": "2026-06-09",
     "paidBy": "Anas",
     "createdAt": "2026-06-10T03:13:56.588Z",
-    "documents": []
+    "documents": [],
+    "revisions": [
+      {
+        "amount": 1500,
+        "category": "Labor",
+        "description": "Labour",
+        "date": "2026-06-09",
+        "paidBy": "Anas",
+        "documents": [],
+        "revisedAt": "2026-06-11T18:24:00.074Z"
+      }
+    ]
   },
   {
     "id": "1781000374640yxw7x0p5q",
