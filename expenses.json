@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781187037716lebesk4mi",
+    "amount": 60,
+    "category": "Materials",
+    "description": "Kilif",
+    "date": "2026-06-11",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-11T14:10:37.716Z",
+    "documents": []
+  },
+  {
     "id": "1781187002640tltt2vy0m",
     "amount": 100,
     "category": "Materials",
