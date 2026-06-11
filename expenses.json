@@ -1,5 +1,15 @@
 [
   {
+    "id": "178118699068998s8ddtea",
+    "amount": 1500,
+    "category": "Labor",
+    "description": "Mujeeb",
+    "date": "2026-06-11",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-11T14:09:50.689Z",
+    "documents": []
+  },
+  {
     "id": "1781186975809nba2jj6qt",
     "amount": 50000,
     "category": "Materials",
