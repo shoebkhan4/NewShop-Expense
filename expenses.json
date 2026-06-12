@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781276711864o2ybicjoz",
+    "amount": 10000,
+    "category": "Materials",
+    "description": "Lyt advance",
+    "date": "2026-06-11",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-12T15:05:11.864Z",
+    "documents": []
+  },
+  {
     "id": "1781187075890dinit72me",
     "amount": 180,
     "category": "Other",
