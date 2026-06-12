@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781276805646034fcryqm",
+    "amount": 10000,
+    "category": "Labor",
+    "description": "Zafar",
+    "date": "2026-06-09",
+    "paidBy": "Shubi",
+    "createdAt": "2026-06-12T15:06:45.646Z",
+    "documents": []
+  },
+  {
     "id": "1781276757064w9f63ab3b",
     "amount": 1000,
     "category": "Labor",
