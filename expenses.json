@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781367784203aixy38ji0",
+    "amount": 500,
+    "category": "Labor",
+    "description": "Neesar lyt",
+    "date": "2026-06-12",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-13T16:23:04.203Z",
+    "documents": []
+  },
+  {
     "id": "178132259912240n30tdh9",
     "amount": 57300,
     "category": "Equipment",
