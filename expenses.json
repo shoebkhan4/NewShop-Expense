@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781322447502y5rbd0r1a",
+    "amount": 200,
+    "category": "Other",
+    "description": "Refreshment",
+    "date": "2026-06-12",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-13T03:47:27.502Z",
+    "documents": []
+  },
+  {
     "id": "1781322326083ok15nsihc",
     "amount": 100,
     "category": "Materials",
