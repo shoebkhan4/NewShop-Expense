@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781322326083ok15nsihc",
+    "amount": 100,
+    "category": "Materials",
+    "description": "Chipki kiiil lyt",
+    "date": "2026-06-12",
+    "paidBy": "Aans",
+    "createdAt": "2026-06-13T03:45:26.083Z",
+    "documents": []
+  },
+  {
     "id": "1781276805646034fcryqm",
     "amount": 10000,
     "category": "Labor",
