@@ -1,5 +1,15 @@
 [
   {
+    "id": "1781368090543q02rpiyz6",
+    "amount": 200,
+    "category": "Other",
+    "description": "Buke petrol",
+    "date": "2026-06-13",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-13T16:28:10.543Z",
+    "documents": []
+  },
+  {
     "id": "1781367907441ku0brhaxz",
     "amount": 1850,
     "category": "Materials",
