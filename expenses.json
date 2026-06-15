@@ -1,5 +1,35 @@
 [
   {
+    "id": "1781541444124n3siw5dwx",
+    "amount": 820,
+    "category": "Materials",
+    "description": "Flexible pipe",
+    "date": "2026-06-15",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-15T16:37:24.124Z",
+    "documents": []
+  },
+  {
+    "id": "1781541377613kq0gmhu8v",
+    "amount": 1300,
+    "category": "Materials",
+    "description": "Machine blade",
+    "date": "2026-06-15",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-15T16:36:17.613Z",
+    "documents": []
+  },
+  {
+    "id": "1781541321117orym5nnze",
+    "amount": 1500,
+    "category": "Other",
+    "description": "Wifi installation",
+    "date": "2026-06-15",
+    "paidBy": "Anas",
+    "createdAt": "2026-06-15T16:35:21.118Z",
+    "documents": []
+  },
+  {
     "id": "1781541213280f4qa5ua9l",
     "amount": 100,
     "category": "Other",
