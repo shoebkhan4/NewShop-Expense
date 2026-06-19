@@ -73,6 +73,13 @@ function init() {
   } else {
     syncFromGitHub();
   }
+
+  // Re-sync whenever the user returns to this tab so they see other users' updates
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && GITHUB_TOKEN) {
+      syncFromGitHub();
+    }
+  });
 }
 
 // ===== Navigation =====
@@ -633,19 +640,41 @@ async function syncFromGitHub() {
     const response = await fetch(getFileUrl(), {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache'
       }
     });
+
+    if (response.status === 401 || response.status === 403) {
+      showToast('GitHub token expired or invalid — update in Settings', 'error');
+      setTimeout(() => openSettings(), 2500);
+      return;
+    }
 
     if (response.status === 404) {
       await syncToGitHub();
       return;
     }
 
-    if (!response.ok) throw new Error('Sync failed');
+    if (!response.ok) throw new Error(`Sync failed (${response.status})`);
 
     const data = await response.json();
-    const remoteExpenses = JSON.parse(atob(data.content));
+
+    // Strip whitespace GitHub adds every 60 chars — required for some mobile browsers
+    const base64 = data.content.replace(/\s/g, '');
+    const binaryStr = atob(base64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    // Try UTF-8 first (new format), fall back to latin1 (legacy files)
+    let jsonStr;
+    try {
+      jsonStr = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch (_) {
+      jsonStr = new TextDecoder('latin1').decode(bytes);
+    }
+    const remoteExpenses = JSON.parse(jsonStr);
     fileSha = data.sha;
 
     expenses = mergeExpenses(expenses, remoteExpenses);
@@ -655,14 +684,50 @@ async function syncFromGitHub() {
     showToastSync();
   } catch (err) {
     console.error('Sync error:', err);
-    showToast('Sync failed - check your token', 'error');
+    showToast('Sync failed — check internet & token in Settings', 'error');
   }
 }
 
 async function syncToGitHub() {
   if (!GITHUB_TOKEN) return;
 
-  const content = btoa(JSON.stringify(expenses, null, 2));
+  // If another user pushed while we were open, refresh the SHA first to avoid 409 conflict
+  if (fileSha) {
+    try {
+      const check = await fetch(getFileUrl(), {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (check.ok) {
+        const latest = await check.json();
+        if (latest.sha !== fileSha) {
+          // Remote changed — merge remote into local before pushing
+          const base64 = latest.content.replace(/\s/g, '');
+          const binaryStr = atob(base64);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+          let jsonStr;
+          try { jsonStr = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+          catch (_) { jsonStr = new TextDecoder('latin1').decode(bytes); }
+          const remoteExpenses = JSON.parse(jsonStr);
+          expenses = mergeExpenses(expenses, remoteExpenses);
+          fileSha = latest.sha;
+          saveCache();
+        }
+      }
+    } catch (_) { /* continue with existing fileSha */ }
+  }
+
+  // Use TextEncoder so any Unicode character (emoji, Arabic, etc.) is encoded correctly
+  const jsonStr = JSON.stringify(expenses, null, 2);
+  const utf8Bytes = new TextEncoder().encode(jsonStr);
+  let binary = '';
+  for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
+  const content = btoa(binary);
+
   const body = {
     message: `Update expenses - ${new Date().toLocaleString()}`,
     content,
