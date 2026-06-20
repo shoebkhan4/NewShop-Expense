@@ -44,6 +44,13 @@ let galleryDocuments = [];
 let currentViewerDoc = null;
 
 // ===== Init =====
+// Auto-reload when a new service worker takes over so users always run fresh code
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
