@@ -44,6 +44,13 @@ let galleryDocuments = [];
 let currentViewerDoc = null;
 
 // ===== Init =====
+// Auto-reload when a new service worker takes over so users always run fresh code
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
@@ -640,7 +647,8 @@ async function syncFromGitHub() {
     const response = await fetch(getFileUrl(), {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache'
       }
     });
 
