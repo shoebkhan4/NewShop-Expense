@@ -647,8 +647,7 @@ async function syncFromGitHub() {
     const response = await fetch(getFileUrl(), {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Cache-Control': 'no-cache'
+        'Accept': 'application/vnd.github.v3+json'
       }
     });
 
