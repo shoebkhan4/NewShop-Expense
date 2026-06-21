@@ -652,8 +652,7 @@ async function syncFromGitHub() {
     });
 
     if (response.status === 401 || response.status === 403) {
-      showToast('GitHub token expired or invalid — update in Settings', 'error');
-      setTimeout(() => openSettings(), 2500);
+      showToast('Token invalid — tap ⚙️ Settings to re-enter it', 'error');
       return;
     }
 
