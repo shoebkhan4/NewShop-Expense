@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shop-khata-v5';
+const CACHE_NAME = 'shop-khata-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(names => 
+    caches.keys().then(names =>
       Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
     )
   );
@@ -28,7 +28,7 @@ self.addEventListener('fetch', event => {
   if (event.request.url.includes('api.github.com')) return;
   if (event.request.url.includes('fonts.googleapis.com')) return;
   if (event.request.url.includes('fonts.gstatic.com')) return;
-  
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
