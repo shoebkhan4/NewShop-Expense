@@ -373,9 +373,11 @@
         </div>
       </div>
 
-      <div class="token-input-group">
-        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx" class="text-input">
+      <div class="token-input-group" style="position:relative;">
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx" class="text-input" style="padding-right:48px;">
+        <button type="button" id="toggle-token-visibility" onclick="(function(){var i=document.getElementById('token-input');var b=document.getElementById('toggle-token-visibility');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈';})()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px;">👁</button>
       </div>
+      <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:6px;text-align:center;">Tap 👁 to verify your token is correct</div>
 
       <div class="modal-actions">
         <button class="modal-btn cancel-btn" id="skip-token-btn">Skip for now</button>
