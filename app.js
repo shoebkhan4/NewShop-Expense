@@ -696,34 +696,35 @@ async function syncFromGitHub() {
 async function syncToGitHub() {
   if (!GITHUB_TOKEN) return;
 
-  // If another user pushed while we were open, refresh the SHA first to avoid 409 conflict
-  if (fileSha) {
-    try {
-      const check = await fetch(getFileUrl(), {
-        headers: {
-          'Authorization': `token ${GITHUB_TOKEN}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-      if (check.ok) {
-        const latest = await check.json();
-        if (latest.sha !== fileSha) {
-          // Remote changed — merge remote into local before pushing
-          const base64 = latest.content.replace(/\s/g, '');
-          const binaryStr = atob(base64);
-          const bytes = new Uint8Array(binaryStr.length);
-          for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-          let jsonStr;
-          try { jsonStr = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
-          catch (_) { jsonStr = new TextDecoder('latin1').decode(bytes); }
-          const remoteExpenses = JSON.parse(jsonStr);
-          expenses = mergeExpenses(expenses, remoteExpenses);
-          fileSha = latest.sha;
-          saveCache();
-        }
+  // Always fetch the current SHA before pushing to handle:
+  // - first push from a new device (fileSha is null → would get 422 without this)
+  // - stale SHA when another user pushed (would get 409 without this)
+  try {
+    const check = await fetch(getFileUrl(), {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json'
       }
-    } catch (_) { /* continue with existing fileSha */ }
-  }
+    });
+    if (check.ok) {
+      const latest = await check.json();
+      if (latest.sha !== fileSha) {
+        // Remote changed or first sync — merge remote into local before pushing
+        const base64 = latest.content.replace(/\s/g, '');
+        const binaryStr = atob(base64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+        let jsonStr;
+        try { jsonStr = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+        catch (_) { jsonStr = new TextDecoder('latin1').decode(bytes); }
+        const remoteExpenses = JSON.parse(jsonStr);
+        expenses = mergeExpenses(expenses, remoteExpenses);
+        fileSha = latest.sha;
+        saveCache();
+      }
+    }
+    // 404 means file doesn't exist yet — proceed with no SHA to create it
+  } catch (_) { /* network error — proceed with whatever SHA we have */ }
 
   // Use TextEncoder so any Unicode character (emoji, Arabic, etc.) is encoded correctly
   const jsonStr = JSON.stringify(expenses, null, 2);
