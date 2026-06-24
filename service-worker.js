@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shop-khata-v9';
+const CACHE_NAME = 'shop-khata-v10';
 const ASSETS = [
   './',
   './index.html',
