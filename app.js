@@ -682,11 +682,19 @@ async function syncFromGitHub() {
     const remoteExpenses = JSON.parse(jsonStr);
     fileSha = data.sha;
 
+    const remoteIds = new Set(remoteExpenses.map(e => e.id));
+    const hasLocalOnly = expenses.some(e => !remoteIds.has(e.id));
+
     expenses = mergeExpenses(expenses, remoteExpenses);
     saveCache();
     renderDashboard();
     renderHistory();
     showToastSync();
+
+    // Push any local-only entries so other devices can see them
+    if (hasLocalOnly) {
+      await syncToGitHub();
+    }
   } catch (err) {
     console.error('Sync error:', err);
     showToast('Sync failed — check internet & token in Settings', 'error');
