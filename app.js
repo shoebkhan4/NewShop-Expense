@@ -46,6 +46,7 @@ let currentViewerDoc = null;
 // ===== Init =====
 // Auto-reload when a new service worker takes over so users always run fresh code
 if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload();
   });
@@ -640,53 +641,101 @@ function formatRevisionAmount(amount) {
 }
 
 // ===== GitHub Sync =====
+
+function decodeBase64Content(base64) {
+  const clean = base64.replace(/\s/g, '');
+  const binaryStr = atob(clean);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch (_) { return new TextDecoder('latin1').decode(bytes); }
+}
+
+function ghHeaders() {
+  return { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
+}
+
+async function fetchExpensesFromGitHub() {
+  const response = await fetch(getFileUrl(), { headers: ghHeaders() });
+
+  if (response.status === 401) {
+    return { error: 'auth' };
+  }
+
+  if (response.status === 404) {
+    return { error: 'not_found' };
+  }
+
+  if (response.status === 403) {
+    const errBody = await response.json().catch(() => ({}));
+    if (errBody.message && errBody.message.includes('too large')) {
+      return await fetchLargeExpensesFromGitHub();
+    }
+    return { error: 'auth' };
+  }
+
+  if (!response.ok) throw new Error(`Sync failed (${response.status})`);
+
+  const data = await response.json();
+  return {
+    expenses: JSON.parse(decodeBase64Content(data.content)),
+    sha: data.sha
+  };
+}
+
+async function fetchLargeExpensesFromGitHub() {
+  const treeResp = await fetch(
+    `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}`,
+    { headers: ghHeaders() }
+  );
+  if (!treeResp.ok) throw new Error('Failed to fetch file tree');
+  const treeData = await treeResp.json();
+  const entry = treeData.tree.find(t => t.path === CONFIG.filePath);
+  if (!entry) return { error: 'not_found' };
+
+  const blobResp = await fetch(
+    `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/blobs/${entry.sha}`,
+    { headers: ghHeaders() }
+  );
+  if (!blobResp.ok) throw new Error('Failed to fetch file blob');
+  const blobData = await blobResp.json();
+
+  return {
+    expenses: JSON.parse(decodeBase64Content(blobData.content)),
+    sha: entry.sha
+  };
+}
+
 async function syncFromGitHub() {
   if (!GITHUB_TOKEN) return;
 
   try {
-    const response = await fetch(getFileUrl(), {
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
+    const result = await fetchExpensesFromGitHub();
 
-    if (response.status === 401 || response.status === 403) {
-      showToast('Token invalid — tap ⚙️ Settings to re-enter it', 'error');
+    if (result.error === 'auth') {
+      showToast('Token invalid — tap Settings to re-enter it', 'error');
       return;
     }
-
-    if (response.status === 404) {
+    if (result.error === 'not_found') {
       await syncToGitHub();
       return;
     }
 
-    if (!response.ok) throw new Error(`Sync failed (${response.status})`);
+    const remoteExpenses = result.expenses;
+    fileSha = result.sha;
 
-    const data = await response.json();
-
-    // Strip whitespace GitHub adds every 60 chars — required for some mobile browsers
-    const base64 = data.content.replace(/\s/g, '');
-    const binaryStr = atob(base64);
-    const bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-      bytes[i] = binaryStr.charCodeAt(i);
-    }
-    // Try UTF-8 first (new format), fall back to latin1 (legacy files)
-    let jsonStr;
-    try {
-      jsonStr = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    } catch (_) {
-      jsonStr = new TextDecoder('latin1').decode(bytes);
-    }
-    const remoteExpenses = JSON.parse(jsonStr);
-    fileSha = data.sha;
+    const remoteIds = new Set(remoteExpenses.map(e => e.id));
+    const hasLocalOnly = expenses.some(e => !remoteIds.has(e.id));
 
     expenses = mergeExpenses(expenses, remoteExpenses);
     saveCache();
     renderDashboard();
     renderHistory();
     showToastSync();
+
+    if (hasLocalOnly) {
+      await syncToGitHub();
+    }
   } catch (err) {
     console.error('Sync error:', err);
     showToast('Sync failed — check internet & token in Settings', 'error');
@@ -696,35 +745,14 @@ async function syncFromGitHub() {
 async function syncToGitHub() {
   if (!GITHUB_TOKEN) return;
 
-  // Always fetch the current SHA before pushing to handle:
-  // - first push from a new device (fileSha is null → would get 422 without this)
-  // - stale SHA when another user pushed (would get 409 without this)
   try {
-    const check = await fetch(getFileUrl(), {
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    if (check.ok) {
-      const latest = await check.json();
-      if (latest.sha !== fileSha) {
-        // Remote changed or first sync — merge remote into local before pushing
-        const base64 = latest.content.replace(/\s/g, '');
-        const binaryStr = atob(base64);
-        const bytes = new Uint8Array(binaryStr.length);
-        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
-        let jsonStr;
-        try { jsonStr = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
-        catch (_) { jsonStr = new TextDecoder('latin1').decode(bytes); }
-        const remoteExpenses = JSON.parse(jsonStr);
-        expenses = mergeExpenses(expenses, remoteExpenses);
-        fileSha = latest.sha;
-        saveCache();
-      }
+    const result = await fetchExpensesFromGitHub();
+    if (result.expenses && result.sha !== fileSha) {
+      expenses = mergeExpenses(expenses, result.expenses);
+      fileSha = result.sha;
+      saveCache();
     }
-    // 404 means file doesn't exist yet — proceed with no SHA to create it
-  } catch (_) { /* network error — proceed with whatever SHA we have */ }
+  } catch (_) { /* proceed with whatever SHA we have */ }
 
   // Use TextEncoder so any Unicode character (emoji, Arabic, etc.) is encoded correctly
   const jsonStr = JSON.stringify(expenses, null, 2);
