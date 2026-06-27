@@ -409,6 +409,24 @@
     </div>
   </div>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js', {updateViaCache:'none'})
+        .then(function(reg){reg.update();}).catch(function(){});
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        window.location.reload();
+      });
+    }
+    setTimeout(function(){
+      var s=document.getElementById('splash');
+      if(s&&!s.classList.contains('fade-out')&&'serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(function(regs){
+          regs.forEach(function(r){r.unregister();});
+          location.reload();
+        });
+      }
+    },8000);
+  </script>
   <script src="app.js"></script>
 </body>
 </html>
