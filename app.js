@@ -32,6 +32,7 @@ const CATEGORIES = {
 // ===== State =====
 let expenses = [];
 let fileSha = null;
+let hasPendingChanges = false;
 let selectedCategory = '';
 let editSelectedCategory = '';
 let editTargetId = null;
@@ -238,8 +239,12 @@ async function handleAddExpense(e) {
   if (GITHUB_TOKEN) {
     try {
       await syncToGitHub();
+      hasPendingChanges = false;
+      saveCache();
       showToast('Expense added & synced!', 'success');
     } catch (err) {
+      hasPendingChanges = true;
+      saveCache();
       showToast('Saved locally, will sync later', 'error');
     }
   } else {
@@ -601,8 +606,12 @@ async function handleEditExpense(e) {
     if (GITHUB_TOKEN) {
       try {
         await syncToGitHub();
+        hasPendingChanges = false;
+        saveCache();
         showToast('Expense updated & synced!', 'success');
       } catch (err) {
+        hasPendingChanges = true;
+        saveCache();
         showToast('Updated locally, will sync later', 'error');
       }
     } else {
@@ -655,86 +664,103 @@ function ghHeaders() {
   return { 'Authorization': `token ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' };
 }
 
-async function fetchExpensesFromGitHub() {
-  const response = await fetch(getFileUrl(), { headers: ghHeaders() });
-
-  if (response.status === 401) {
-    return { error: 'auth' };
-  }
-
-  if (response.status === 404) {
-    return { error: 'not_found' };
-  }
-
-  if (response.status === 403) {
-    const errBody = await response.json().catch(() => ({}));
-    if (errBody.message && errBody.message.includes('too large')) {
-      return await fetchLargeExpensesFromGitHub();
-    }
-    return { error: 'auth' };
-  }
-
-  if (!response.ok) throw new Error(`Sync failed (${response.status})`);
-
-  const data = await response.json();
-  return {
-    expenses: JSON.parse(decodeBase64Content(data.content)),
-    sha: data.sha
-  };
-}
-
-async function fetchLargeExpensesFromGitHub() {
-  const treeResp = await fetch(
+async function getRemoteFileInfo() {
+  const resp = await fetch(
     `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}`,
     { headers: ghHeaders() }
   );
-  if (!treeResp.ok) throw new Error('Failed to fetch file tree');
-  const treeData = await treeResp.json();
-  const entry = treeData.tree.find(t => t.path === CONFIG.filePath);
+  if (resp.status === 401 || resp.status === 403) return { error: 'auth' };
+  if (!resp.ok) throw new Error(`GitHub API error (${resp.status})`);
+  const data = await resp.json();
+  const entry = data.tree.find(t => t.path === CONFIG.filePath);
   if (!entry) return { error: 'not_found' };
+  return { sha: entry.sha };
+}
 
-  const blobResp = await fetch(
-    `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/blobs/${entry.sha}`,
+async function fetchRemoteExpenses(blobSha) {
+  const resp = await fetch(
+    `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/blobs/${blobSha}`,
     { headers: ghHeaders() }
   );
-  if (!blobResp.ok) throw new Error('Failed to fetch file blob');
-  const blobData = await blobResp.json();
+  if (!resp.ok) throw new Error(`Failed to download data (${resp.status})`);
+  const data = await resp.json();
+  return JSON.parse(decodeBase64Content(data.content));
+}
 
-  return {
-    expenses: JSON.parse(decodeBase64Content(blobData.content)),
-    sha: entry.sha
-  };
+function getLastModified(expense) {
+  if (expense.revisions && expense.revisions.length > 0 && expense.revisions[0].revisedAt) {
+    return new Date(expense.revisions[0].revisedAt).getTime() || 0;
+  }
+  return new Date(expense.createdAt || expense.date).getTime() || 0;
+}
+
+function mergeExpenses(local, remote) {
+  const map = new Map();
+  remote.forEach(e => map.set(e.id, e));
+  local.forEach(e => {
+    if (!map.has(e.id)) {
+      map.set(e.id, e);
+    } else if (getLastModified(e) > getLastModified(map.get(e.id))) {
+      map.set(e.id, e);
+    }
+  });
+  return Array.from(map.values())
+    .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 }
 
 async function syncFromGitHub() {
   if (!GITHUB_TOKEN) return;
 
   try {
-    const result = await fetchExpensesFromGitHub();
+    const fileInfo = await getRemoteFileInfo();
 
-    if (result.error === 'auth') {
+    if (fileInfo.error === 'auth') {
       showToast('Token invalid — tap Settings to re-enter it', 'error');
       return;
     }
-    if (result.error === 'not_found') {
-      await syncToGitHub();
+
+    if (fileInfo.error === 'not_found') {
+      fileSha = null;
+      if (expenses.length > 0) {
+        await syncToGitHub();
+        hasPendingChanges = false;
+        saveCache();
+      }
       return;
     }
 
-    const remoteExpenses = result.expenses;
-    fileSha = result.sha;
+    const remoteChanged = fileInfo.sha !== fileSha;
 
-    const remoteIds = new Set(remoteExpenses.map(e => e.id));
-    const hasLocalOnly = expenses.some(e => !remoteIds.has(e.id));
+    if (!remoteChanged && !hasPendingChanges) {
+      showToastSync();
+      return;
+    }
+
+    const remoteExpenses = await fetchRemoteExpenses(fileInfo.sha);
+
+    const remoteMap = new Map(remoteExpenses.map(e => [e.id, e]));
+    const needsPush = expenses.some(e => {
+      if (!remoteMap.has(e.id)) return true;
+      return getLastModified(e) > getLastModified(remoteMap.get(e.id));
+    });
 
     expenses = mergeExpenses(expenses, remoteExpenses);
+    fileSha = fileInfo.sha;
     saveCache();
     renderDashboard();
     renderHistory();
     showToastSync();
 
-    if (hasLocalOnly) {
-      await syncToGitHub();
+    if (needsPush || hasPendingChanges) {
+      try {
+        await syncToGitHub();
+        hasPendingChanges = false;
+        saveCache();
+      } catch (err) {
+        hasPendingChanges = true;
+        saveCache();
+        console.error('Push after sync failed:', err);
+      }
     }
   } catch (err) {
     console.error('Sync error:', err);
@@ -745,57 +771,70 @@ async function syncFromGitHub() {
 async function syncToGitHub() {
   if (!GITHUB_TOKEN) return;
 
-  try {
-    const result = await fetchExpensesFromGitHub();
-    if (result.expenses && result.sha !== fileSha) {
-      expenses = mergeExpenses(expenses, result.expenses);
-      fileSha = result.sha;
-      saveCache();
+  const MAX_RETRIES = 3;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const fileInfo = await getRemoteFileInfo();
+
+    if (fileInfo.error === 'auth') {
+      showToast('Token invalid — tap Settings to re-enter it', 'error');
+      return;
     }
-  } catch (_) { /* proceed with whatever SHA we have */ }
 
-  // Use TextEncoder so any Unicode character (emoji, Arabic, etc.) is encoded correctly
-  const jsonStr = JSON.stringify(expenses, null, 2);
-  const utf8Bytes = new TextEncoder().encode(jsonStr);
-  let binary = '';
-  for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
-  const content = btoa(binary);
+    let remoteSha = null;
 
-  const body = {
-    message: `Update expenses - ${new Date().toLocaleString()}`,
-    content,
-    branch: CONFIG.branch
-  };
+    if (fileInfo.error === 'not_found') {
+      remoteSha = null;
+    } else {
+      remoteSha = fileInfo.sha;
+      if (remoteSha !== fileSha) {
+        const remoteExpenses = await fetchRemoteExpenses(remoteSha);
+        expenses = mergeExpenses(expenses, remoteExpenses);
+      }
+    }
 
-  if (fileSha) body.sha = fileSha;
+    fileSha = remoteSha;
+    saveCache();
 
-  const response = await fetch(getFileUrl(), {
-    method: 'PUT',
-    headers: {
-      'Authorization': `token ${GITHUB_TOKEN}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
+    const jsonStr = JSON.stringify(expenses, null, 2);
+    const utf8Bytes = new TextEncoder().encode(jsonStr);
+    let binary = '';
+    for (let i = 0; i < utf8Bytes.length; i++) binary += String.fromCharCode(utf8Bytes[i]);
+    const content = btoa(binary);
 
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.message || 'Upload failed');
+    const body = {
+      message: `Update expenses - ${new Date().toLocaleString()}`,
+      content,
+      branch: CONFIG.branch
+    };
+    if (fileSha) body.sha = fileSha;
+
+    const response = await fetch(getFileUrl(), {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      fileSha = data.content.sha;
+      hasPendingChanges = false;
+      saveCache();
+      return;
+    }
+
+    if ((response.status === 409 || response.status === 422) && attempt < MAX_RETRIES - 1) {
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+      continue;
+    }
+
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || `Upload failed (${response.status})`);
   }
-
-  const data = await response.json();
-  fileSha = data.content.sha;
-  saveCache();
-}
-
-function mergeExpenses(local, remote) {
-  const merged = [...remote];
-  const remoteIds = new Set(remote.map(e => e.id));
-  local.forEach(e => {
-    if (!remoteIds.has(e.id)) merged.push(e);
-  });
-  return merged.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 }
 
 // ===== Cache =====
@@ -803,14 +842,18 @@ function loadCache() {
   try {
     expenses = JSON.parse(localStorage.getItem('shop_khata_expenses') || '[]');
     fileSha = localStorage.getItem('shop_khata_sha') || null;
+    hasPendingChanges = localStorage.getItem('shop_khata_pending') === 'true';
   } catch (e) {
     expenses = [];
+    hasPendingChanges = false;
   }
 }
 
 function saveCache() {
   localStorage.setItem('shop_khata_expenses', JSON.stringify(expenses));
   if (fileSha) localStorage.setItem('shop_khata_sha', fileSha);
+  else localStorage.removeItem('shop_khata_sha');
+  localStorage.setItem('shop_khata_pending', hasPendingChanges ? 'true' : 'false');
 }
 
 // ===== Helpers =====
