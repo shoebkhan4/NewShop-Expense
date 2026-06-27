@@ -727,9 +727,6 @@ async function syncFromGitHub() {
     const remoteIds = new Set(remoteExpenses.map(e => e.id));
     const hasLocalOnly = expenses.some(e => !remoteIds.has(e.id));
 
-    const remoteIds = new Set(remoteExpenses.map(e => e.id));
-    const hasLocalOnly = expenses.some(e => !remoteIds.has(e.id));
-
     expenses = mergeExpenses(expenses, remoteExpenses);
     saveCache();
     renderDashboard();
