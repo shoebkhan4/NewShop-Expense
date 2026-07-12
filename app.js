@@ -3,6 +3,7 @@ const CONFIG = {
   owner: 'shoebkhan4',
   repo: 'NewShop-Expense',
   filePath: 'expenses.json',
+  documentsDir: 'documents',
   branch: 'main',
   apiBase: 'https://api.github.com'
 };
@@ -43,6 +44,12 @@ let editTempDocs = [];
 let galleryFilter = 'all';
 let galleryDocuments = [];
 let currentViewerDoc = null;
+let currentViewerData = null;
+
+// In-memory cache of resolved document base64 data (docId -> data URL).
+// Kept out of localStorage so heavy attachment bytes never bloat the
+// persisted cache or push us over browser storage quotas.
+const docCache = new Map();
 
 // ===== Init =====
 // Auto-reload when a new service worker takes over so users always run fresh code
@@ -217,6 +224,7 @@ async function handleAddExpense(e) {
   if (uploadedDoc) {
     const docType = document.querySelector('input[name="expense-doc-type"]:checked').value;
     expenseDocs.push({
+      id: genId('doc'),
       base64: uploadedDoc.base64,
       filename: uploadedDoc.filename,
       mimeType: uploadedDoc.mimeType,
@@ -238,6 +246,8 @@ async function handleAddExpense(e) {
 
   if (GITHUB_TOKEN) {
     try {
+      await migrateDocumentsInPlace(expense.documents);
+      saveCache();
       await syncToGitHub();
       hasPendingChanges = false;
       saveCache();
@@ -548,6 +558,7 @@ async function handleEditExpense(e) {
   if (editUploadedDoc) {
     const docType = document.querySelector('input[name="edit-expense-doc-type"]:checked').value;
     editTempDocs.push({
+      id: genId('doc'),
       base64: editUploadedDoc.base64,
       filename: editUploadedDoc.filename,
       mimeType: editUploadedDoc.mimeType,
@@ -605,6 +616,8 @@ async function handleEditExpense(e) {
 
     if (GITHUB_TOKEN) {
       try {
+        await migrateDocumentsInPlace(expense.documents);
+        saveCache();
         await syncToGitHub();
         hasPendingChanges = false;
         saveCache();
@@ -687,6 +700,133 @@ async function fetchRemoteExpenses(blobSha) {
   return JSON.parse(decodeBase64Content(data.content));
 }
 
+// ===== Document Storage (attachments live as separate GitHub files, =====
+// ===== never embedded in expenses.json, so metadata sync stays fast =====
+
+function genId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function extFromMime(mimeType) {
+  const map = {
+    'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png',
+    'image/gif': 'gif', 'image/webp': 'webp', 'application/pdf': 'pdf'
+  };
+  return map[mimeType] || 'bin';
+}
+
+async function uploadDocumentFile(docId, dataUrl, mimeType) {
+  const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+  const path = `${CONFIG.documentsDir}/${docId}.${extFromMime(mimeType)}`;
+  const url = `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `token ${GITHUB_TOKEN}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ message: `Add document ${docId}`, content: base64, branch: CONFIG.branch })
+  });
+
+  if (response.ok) return path;
+
+  // 422 usually means the file already exists at this path (e.g. a retry
+  // after a dropped response) — since doc ids are unique per upload, that
+  // means our own upload already landed, so treat it as success.
+  if (response.status === 422) return path;
+
+  const err = await response.json().catch(() => ({}));
+  throw new Error(err.message || `Document upload failed (${response.status})`);
+}
+
+async function fetchDocumentContent(path, mimeType) {
+  const url = `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}?ref=${CONFIG.branch}`;
+  const resp = await fetch(url, { headers: ghHeaders() });
+
+  if (resp.status === 403) {
+    const errBody = await resp.json().catch(() => ({}));
+    if (errBody.message && errBody.message.includes('too large')) {
+      return await fetchDocumentContentViaBlob(path, mimeType);
+    }
+    throw new Error('Failed to fetch document (auth)');
+  }
+
+  if (!resp.ok) throw new Error(`Failed to fetch document (${resp.status})`);
+  const data = await resp.json();
+  return `data:${mimeType};base64,${data.content.replace(/\s/g, '')}`;
+}
+
+async function fetchDocumentContentViaBlob(path, mimeType) {
+  const treeResp = await fetch(
+    `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}?recursive=1`,
+    { headers: ghHeaders() }
+  );
+  if (!treeResp.ok) throw new Error('Failed to fetch file tree');
+  const treeData = await treeResp.json();
+  const entry = treeData.tree.find(t => t.path === path);
+  if (!entry) throw new Error('Document not found');
+
+  const blobResp = await fetch(
+    `${CONFIG.apiBase}/repos/${CONFIG.owner}/${CONFIG.repo}/git/blobs/${entry.sha}`,
+    { headers: ghHeaders() }
+  );
+  if (!blobResp.ok) throw new Error('Failed to fetch document blob');
+  const blobData = await blobResp.json();
+  return `data:${mimeType};base64,${blobData.content.replace(/\s/g, '')}`;
+}
+
+// Resolves a document's viewable base64 data URL: in-memory cache first,
+// then any legacy inline base64 still on the object, then GitHub.
+async function getDocumentBase64(doc) {
+  const cacheKey = doc.id || doc.path || doc.filename;
+  if (docCache.has(cacheKey)) return docCache.get(cacheKey);
+  if (doc.base64) {
+    docCache.set(cacheKey, doc.base64);
+    return doc.base64;
+  }
+  if (!doc.path) throw new Error('Document not available');
+  const dataUrl = await fetchDocumentContent(doc.path, doc.mimeType);
+  docCache.set(cacheKey, dataUrl);
+  return dataUrl;
+}
+
+// Uploads any inline (legacy or newly-added) base64 documents in this array
+// to GitHub as standalone files, then strips the base64 so expenses.json
+// only ever carries a lightweight path reference. Mutates in place.
+async function migrateDocumentsInPlace(docsArray) {
+  if (!docsArray || docsArray.length === 0) return false;
+  let changed = false;
+  for (const doc of docsArray) {
+    if (doc.path || !doc.base64) continue;
+    if (!doc.id) doc.id = genId('doc');
+    try {
+      const path = await uploadDocumentFile(doc.id, doc.base64, doc.mimeType);
+      docCache.set(doc.id, doc.base64);
+      doc.path = path;
+      delete doc.base64;
+      changed = true;
+    } catch (err) {
+      console.error('Document migration failed:', err);
+    }
+  }
+  return changed;
+}
+
+async function migrateAllDocuments() {
+  let changed = false;
+  for (const expense of expenses) {
+    if (await migrateDocumentsInPlace(expense.documents)) changed = true;
+    if (expense.revisions) {
+      for (const rev of expense.revisions) {
+        if (await migrateDocumentsInPlace(rev.documents)) changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
 function getLastModified(expense) {
   if (expense.revisions && expense.revisions.length > 0 && expense.revisions[0].revisedAt) {
     return new Date(expense.revisions[0].revisedAt).getTime() || 0;
@@ -751,7 +891,15 @@ async function syncFromGitHub() {
     renderHistory();
     showToastSync();
 
-    if (needsPush || hasPendingChanges) {
+    let migrated = false;
+    try {
+      migrated = await migrateAllDocuments();
+      if (migrated) saveCache();
+    } catch (err) {
+      console.error('Document migration pass failed:', err);
+    }
+
+    if (needsPush || hasPendingChanges || migrated) {
       try {
         await syncToGitHub();
         hasPendingChanges = false;
@@ -1014,9 +1162,9 @@ function setupDocumentUploads() {
 
   // Persistent click listener for document viewer download/open button
   document.getElementById('viewer-download-btn').addEventListener('click', () => {
-    if (currentViewerDoc) {
+    if (currentViewerDoc && currentViewerData) {
       const link = document.createElement('a');
-      link.href = currentViewerDoc.base64;
+      link.href = currentViewerData;
       link.download = currentViewerDoc.filename;
       document.body.appendChild(link);
       link.click();
@@ -1042,12 +1190,13 @@ function renderEditExistingDocs() {
     return;
   }
 
-  container.innerHTML = `<label class="form-label" style="margin-top: 10px;">Current Documents</label>` + 
+  container.innerHTML = `<label class="form-label" style="margin-top: 10px;">Current Documents</label>` +
     editTempDocs.map((doc, idx) => {
       const isImage = doc.mimeType.startsWith('image/');
-      const preview = isImage 
-        ? `<img src="${doc.base64}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">`
-        : `<span style="font-size: 1.5rem;">📄</span>`;
+      const cachedSrc = doc.base64 || docCache.get(doc.id);
+      const preview = isImage && cachedSrc
+        ? `<img src="${cachedSrc}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">`
+        : `<span style="font-size: 1.5rem;">${isImage ? '🖼️' : '📄'}</span>`;
       const badgeClass = doc.type === 'Warranty' ? 'badge-warranty' : 'badge-bill';
 
       return `
@@ -1103,18 +1252,16 @@ function areDocumentsEqual(docs1, docs2) {
   const arr1 = [...(docs1 || [])];
   const arr2 = [...(docs2 || [])];
   if (arr1.length !== arr2.length) return false;
-  
-  const key = d => `${d.filename || ''}_${d.type || ''}_${d.mimeType || ''}_${d.base64 || ''}`;
+
+  // Identity is the doc id/path once uploaded, falling back to inline
+  // base64 for not-yet-migrated docs, so equality still holds regardless
+  // of whether a document has been offloaded to GitHub yet.
+  const key = d => `${d.filename || ''}_${d.type || ''}_${d.mimeType || ''}_${d.id || d.path || d.base64 || ''}`;
   arr1.sort((a, b) => key(a).localeCompare(key(b)));
   arr2.sort((a, b) => key(a).localeCompare(key(b)));
 
   for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i].filename !== arr2[i].filename ||
-        arr1[i].mimeType !== arr2[i].mimeType ||
-        arr1[i].type !== arr2[i].type ||
-        arr1[i].base64 !== arr2[i].base64) {
-      return false;
-    }
+    if (key(arr1[i]) !== key(arr2[i])) return false;
   }
   return true;
 }
@@ -1167,9 +1314,10 @@ function renderDocumentsGallery() {
   container.innerHTML = allDocs.map((doc, idx) => {
     const isImage = doc.mimeType.startsWith('image/');
     const badgeClass = doc.type === 'Warranty' ? 'badge-warranty' : 'badge-bill';
-    const previewHtml = isImage
-      ? `<img src="${doc.base64}" class="document-thumb" alt="${escapeHtml(doc.filename)}">`
-      : `<span class="document-pdf-icon">📄</span>`;
+    const cachedSrc = doc.base64 || docCache.get(doc.id);
+    const previewHtml = isImage && cachedSrc
+      ? `<img src="${cachedSrc}" class="document-thumb" alt="${escapeHtml(doc.filename)}">`
+      : `<span class="document-pdf-icon">${isImage ? '🖼️' : '📄'}</span>`;
 
     return `
       <div class="document-gallery-card" onclick="viewDocFromGallery(${idx})">
@@ -1197,18 +1345,36 @@ window.viewDocFromGallery = function(idx) {
   }
 };
 
-function viewDocument(doc) {
+async function viewDocument(doc) {
   const modal = document.getElementById('viewer-modal');
   const title = document.getElementById('viewer-title');
   const content = document.getElementById('viewer-content');
 
   currentViewerDoc = doc;
+  currentViewerData = null;
   title.textContent = doc.filename;
+  content.innerHTML = '<div style="text-align:center; padding: 30px 0;"><span class="btn-spinner" style="display:inline-block;"></span><div style="margin-top:10px; font-size:0.85rem; color:var(--text-tertiary);">Loading document...</div></div>';
+  modal.classList.remove('hidden');
+
+  let dataUrl;
+  try {
+    dataUrl = await getDocumentBase64(doc);
+  } catch (err) {
+    content.innerHTML = `
+      <div style="text-align:center; padding: 20px;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">⚠️</div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">Could not load this document. Check your internet connection and try again.</div>
+      </div>
+    `;
+    return;
+  }
+
+  currentViewerData = dataUrl;
   content.innerHTML = '';
 
   if (doc.mimeType.startsWith('image/')) {
     const img = document.createElement('img');
-    img.src = doc.base64;
+    img.src = dataUrl;
     img.alt = doc.filename;
     content.appendChild(img);
   } else if (doc.mimeType === 'application/pdf') {
@@ -1231,8 +1397,6 @@ function viewDocument(doc) {
     `;
     content.appendChild(otherDiv);
   }
-
-  modal.classList.remove('hidden');
 }
 
 window.closeViewerModal = function() {
