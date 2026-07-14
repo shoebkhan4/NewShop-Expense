@@ -1,5 +1,23 @@
 [
   {
+    "id": "1784007305220cdkwbbbrf",
+    "amount": 26000,
+    "category": "Machines",
+    "description": "Coffee machine, advance",
+    "date": "2026-06-18",
+    "paidBy": "Bhai",
+    "createdAt": "2026-07-14T05:35:05.221Z",
+    "documents": [
+      {
+        "id": "doc_mrk7vymc_58gzdv",
+        "filename": "image.jpg",
+        "mimeType": "image/jpeg",
+        "type": "Bill",
+        "path": "documents/doc_mrk7vymc_58gzdv.jpg"
+      }
+    ]
+  },
+  {
     "id": "1784006712063w5ey25trn",
     "amount": 54000,
     "category": "Machines",
