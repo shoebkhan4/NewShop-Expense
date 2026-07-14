@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784016312048yglejmnea",
+    "amount": 200000,
+    "category": "Materials",
+    "description": "Transformer",
+    "date": "2026-06-24",
+    "paidBy": "Bhai",
+    "createdAt": "2026-07-14T08:05:12.048Z",
+    "documents": []
+  },
+  {
     "id": "1784008313011db60v9xpm",
     "amount": 66906,
     "category": "Machines",
