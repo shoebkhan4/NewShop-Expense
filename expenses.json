@@ -1,5 +1,15 @@
 [
   {
+    "id": "17840042985890ddputkl8",
+    "amount": 14500,
+    "category": "Materials",
+    "description": "Outside flooring",
+    "date": "2026-07-13",
+    "paidBy": "Hiba",
+    "createdAt": "2026-07-14T04:44:58.589Z",
+    "documents": []
+  },
+  {
     "id": "1784004199545593yx0npd",
     "amount": 3420,
     "category": "Materials",
