@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784004199545593yx0npd",
+    "amount": 3420,
+    "category": "Materials",
+    "description": "Pen drive + printing roll",
+    "date": "2026-07-12",
+    "paidBy": "Hiba",
+    "createdAt": "2026-07-14T04:43:19.545Z",
+    "documents": []
+  },
+  {
     "id": "1784004141161i0e23gsyt",
     "amount": 10000,
     "category": "Materials",
