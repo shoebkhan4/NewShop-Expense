@@ -1,5 +1,23 @@
 [
   {
+    "id": "1784006712063w5ey25trn",
+    "amount": 54000,
+    "category": "Machines",
+    "description": "Fridge",
+    "date": "2026-06-11",
+    "paidBy": "Bhai",
+    "createdAt": "2026-07-14T05:25:12.063Z",
+    "documents": [
+      {
+        "id": "doc_mrk7j8xr_f0rnof",
+        "filename": "TNS Barelly 2.pdf",
+        "mimeType": "application/pdf",
+        "type": "Bill",
+        "path": "documents/doc_mrk7j8xr_f0rnof.pdf"
+      }
+    ]
+  },
+  {
     "id": "17840042985890ddputkl8",
     "amount": 14500,
     "category": "Materials",
