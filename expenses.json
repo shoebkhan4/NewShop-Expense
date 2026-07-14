@@ -1,5 +1,23 @@
 [
   {
+    "id": "1784008313011db60v9xpm",
+    "amount": 66906,
+    "category": "Machines",
+    "description": "POS machine",
+    "date": "2026-06-19",
+    "paidBy": "Bhai",
+    "createdAt": "2026-07-14T05:51:53.011Z",
+    "documents": [
+      {
+        "id": "doc_mrk8hk8i_d1wths",
+        "filename": "June Ddyama Pos Rate.pdf",
+        "mimeType": "application/pdf",
+        "type": "Bill",
+        "path": "documents/doc_mrk8hk8i_d1wths.pdf"
+      }
+    ]
+  },
+  {
     "id": "1784008154949oxyrqvg5a",
     "amount": 381940,
     "category": "Other",
