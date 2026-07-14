@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784004141161i0e23gsyt",
+    "amount": 10000,
+    "category": "Materials",
+    "description": "Banner printing advance",
+    "date": "2026-07-11",
+    "paidBy": "Hiba",
+    "createdAt": "2026-07-14T04:42:21.161Z",
+    "documents": []
+  },
+  {
     "id": "1784004097592eodfr24z1",
     "amount": 77729,
     "category": "Materials",
