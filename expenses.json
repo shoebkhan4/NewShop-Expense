@@ -1,5 +1,15 @@
 [
   {
+    "id": "17843497434971wc4sg4rh",
+    "amount": 51500,
+    "category": "Materials",
+    "description": "Chair",
+    "date": "2026-07-14",
+    "paidBy": "Hiba",
+    "createdAt": "2026-07-18T04:42:23.497Z",
+    "documents": []
+  },
+  {
     "id": "1784349724382l3f5g9ktm",
     "amount": 2250,
     "category": "Materials",
