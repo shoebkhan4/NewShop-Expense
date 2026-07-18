@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784349763783dirvl9chi",
+    "amount": 1500,
+    "category": "Transport",
+    "description": "Stock dehli",
+    "date": "2026-07-15",
+    "paidBy": "",
+    "createdAt": "2026-07-18T04:42:43.783Z",
+    "documents": []
+  },
+  {
     "id": "17843497434971wc4sg4rh",
     "amount": 51500,
     "category": "Materials",
