@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784349960722o88kxw52g",
+    "amount": 1000,
+    "category": "Transport",
+    "description": "Bly",
+    "date": "2026-07-16",
+    "paidBy": "",
+    "createdAt": "2026-07-18T04:46:00.722Z",
+    "documents": []
+  },
+  {
     "id": "1784349933541saixx43uu",
     "amount": 1806,
     "category": "Other",
