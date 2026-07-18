@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784349684415uor4abmtc",
+    "amount": 2100,
+    "category": "Transport",
+    "description": "Chair",
+    "date": "2026-07-14",
+    "paidBy": "Anas",
+    "createdAt": "2026-07-18T04:41:24.415Z",
+    "documents": []
+  },
+  {
     "id": "1784016312048yglejmnea",
     "amount": 200000,
     "category": "Materials",
