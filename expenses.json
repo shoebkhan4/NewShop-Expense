@@ -1,5 +1,15 @@
 [
   {
+    "id": "1784349820859tviwne3n1",
+    "amount": 46419,
+    "category": "Other",
+    "description": "Stock",
+    "date": "2026-07-16",
+    "paidBy": "Hiba",
+    "createdAt": "2026-07-18T04:43:40.859Z",
+    "documents": []
+  },
+  {
     "id": "1784349763783dirvl9chi",
     "amount": 1500,
     "category": "Transport",
